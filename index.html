@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOKHA TYRES - Debtors Dashboard</title>
+    <title>Bhagwati Motors - Multi-Branch Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -22,16 +22,191 @@
             color: white;
             padding: 20px 0;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
             margin-bottom: 5px;
+            font-size: 2.2em;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .branch-info {
+            background-color: #34495e;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        /* Branch Selector Styles */
+        .branch-selector {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .branch-selector h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.5em;
+        }
+
+        .branch-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .branch-btn {
+            padding: 20px 40px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background: white;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+
+        .branch-btn:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .branch-btn.active {
+            background: #27ae60;
+            border-color: #27ae60;
+            color: white;
+        }
+
+        /* Login Modal Styles */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .login-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            min-width: 350px;
+        }
+
+        .login-content h3 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+            text-align: center;
+            font-size: 1.3em;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .login-form input {
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .login-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .login-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .login-btn:hover {
+            background: #229954;
+        }
+
+        .cancel-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #c0392b;
+        }
+
+        /* Dashboard Styles */
+        .dashboard-content {
+            display: none;
+        }
+
+        .dashboard-content.active {
+            display: block;
         }
 
         .nav-tabs {
@@ -270,6 +445,19 @@
                 padding: 10px;
             }
 
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .branch-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .branch-btn {
+                min-width: 250px;
+            }
+
             .nav-tabs {
                 flex-direction: column;
             }
@@ -289,199 +477,273 @@
             th, td {
                 padding: 6px 4px;
             }
+
+            .logout-btn {
+                position: static;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🚗 NOKHA TYRES</h1>
-        <p>Debtors Management Dashboard</p>
+        <h1>🏢 BHAGWATI MOTORS INDIA PRIVATE LIMITED</h1>
+        <p>Multi-Branch Debtors Management System</p>
+        <button class="logout-btn" onclick="logout()" id="logoutBtn">🔓 Logout</button>
+    </div>
+
+    <div class="branch-info" id="branchInfo" style="display: none;">
+        Currently viewing: <span id="currentBranch"></span>
     </div>
 
     <div class="container">
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showPage('dashboard')">📊 Main Dashboard</button>
-            <button class="nav-tab" onclick="showPage('summary')">📈 Debtors Summary</button>
-            <button class="nav-tab" onclick="showPage('findings')">📝 Findings & Remarks</button>
-        </div>
-
-        <div id="dashboardPage" class="page active">
-            <div class="controls">
-                <h3>📊 Dashboard Controls</h3>
-                <div class="controls-grid">
-                    <div class="form-group">
-                        <label for="fromDate">From Date:</label>
-                        <input type="date" id="fromDate">
-                    </div>
-                    <div class="form-group">
-                        <label for="toDate">To Date:</label>
-                        <input type="date" id="toDate">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerSelect">Select Customer:</label>
-                        <select id="customerSelect">
-                            <option value="">All Customers</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="dueDays">Due Days Threshold:</label>
-                        <input type="number" id="dueDays" value="7" min="0">
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-primary" onclick="refreshDashboard()">📊 Refresh Dashboard</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="overdueTotal">₹0</div>
-                    <div class="stat-label">Overdue Amount</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="regularTotal">₹0</div>
-                    <div class="stat-label">Regular Amount</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="grandTotal">₹0</div>
-                    <div class="stat-label">Total Amount</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="recordCount">0</div>
-                    <div class="stat-label">Total Records</div>
-                </div>
-            </div>
-
-            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #27ae60;">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <h4 style="margin: 0; color: #27ae60;">📤 Copy to Findings</h4>
-                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Select rows and add remarks, then copy to findings for management review</p>
-                    </div>
-                    <button class="btn btn-success" onclick="copySelectedToFindings()">📤 Copy Selected to Findings</button>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Select</th>
-                            <th>Customer Code <button onclick="sortTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Customer Name <button onclick="sortTable(2)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Type <button onclick="sortTable(3)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Doc. No. <button onclick="sortTable(4)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Posting Date <button onclick="sortTable(5)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Due Date <button onclick="sortTable(6)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Balance Due <button onclick="sortTable(7)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Staff Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dashboardTableBody">
-                        <tr>
-                            <td colspan="9" class="loading">🔄 Click "Refresh Dashboard" to load data</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- Branch Selector (shown when no branch is selected) -->
+        <div class="branch-selector" id="branchSelector">
+            <h3>🏪 Select Branch to Access Dashboard</h3>
+            <p style="margin-bottom: 25px; color: #7f8c8d;">Choose your branch to view debtors data</p>
+            <div class="branch-buttons">
+                <button class="branch-btn" onclick="selectBranch('nokha')">
+                    🚗 NOKHA TYRES
+                </button>
+                <button class="branch-btn" onclick="selectBranch('honda')">
+                    🏍️ HONDA
+                </button>
+                <button class="branch-btn" onclick="selectBranch('bikaner')">
+                    🏪 BIKANER MAIN
+                </button>
             </div>
         </div>
 
-        <div id="summaryPage" class="page">
-            <div class="controls">
-                <h3>📈 Debtors Summary</h3>
-                <div class="controls-grid">
-                    <div class="form-group">
-                        <button class="btn btn-primary" onclick="refreshSummary()">🔄 Refresh Summary</button>
+        <!-- Login Modal -->
+        <div class="login-modal" id="loginModal">
+            <div class="login-content">
+                <h3 id="loginTitle">🔐 Branch Access</h3>
+                <div class="login-form">
+                    <input type="text" id="loginUsername" placeholder="Enter Username">
+                    <input type="password" id="loginPassword" placeholder="Enter Password">
+                    <div class="login-buttons">
+                        <button class="login-btn" onclick="authenticateBranch()">Login</button>
+                        <button class="cancel-btn" onclick="cancelLogin()">Cancel</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalCustomers">0</div>
-                    <div class="stat-label">Total Customers</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="summaryGrandTotal">₹0</div>
-                    <div class="stat-label">Grand Total</div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Customer Name <button onclick="sortSummaryTable(0)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                            <th>Total Due Amount <button onclick="sortSummaryTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                        </tr>
-                    </thead>
-                    <tbody id="summaryTableBody">
-                        <tr>
-                            <td colspan="2" class="loading">🔄 Click "Refresh Summary" to load data</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
 
-        <div id="findingsPage" class="page">
-            <div class="controls">
-                <h3>📝 Findings & Remarks Management</h3>
-                <div class="controls-grid">
-                    <div class="form-group">
-                        <button class="btn btn-primary" onclick="refreshFindings()">🔄 Refresh Findings</button>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn btn-warning" onclick="updateAllRemarks()">💾 Save All Remarks</button>
-                    </div>
-                </div>
-                <p style="color: #666; margin-top: 10px; font-size: 14px;">
-                    ✏️ Both staff and management can edit their remarks. Click "Save All Remarks" to update the Google Sheet.
-                </p>
+        <!-- Dashboard Content (hidden until authenticated) -->
+        <div class="dashboard-content" id="dashboardContent">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showPage('dashboard')">📊 Main Dashboard</button>
+                <button class="nav-tab" onclick="showPage('summary')">📈 Debtors Summary</button>
+                <button class="nav-tab" onclick="showPage('findings')">📝 Findings & Remarks</button>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="findingsCount">Loading...</div>
-                    <div class="stat-label">Total Findings</div>
+            <div id="dashboardPage" class="page active">
+                <div class="controls">
+                    <h3>📊 Dashboard Controls</h3>
+                    <div class="controls-grid">
+                        <div class="form-group">
+                            <label for="fromDate">From Date:</label>
+                            <input type="date" id="fromDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="toDate">To Date:</label>
+                            <input type="date" id="toDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerSelect">Select Customer:</label>
+                            <select id="customerSelect">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDays">Due Days Threshold:</label>
+                            <input type="number" id="dueDays" value="7" min="0">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="refreshDashboard()">📊 Refresh Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="overdueTotal">₹0</div>
+                        <div class="stat-label">Overdue Amount</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="regularTotal">₹0</div>
+                        <div class="stat-label">Regular Amount</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="grandTotal">₹0</div>
+                        <div class="stat-label">Total Amount</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="recordCount">0</div>
+                        <div class="stat-label">Total Records</div>
+                    </div>
+                </div>
+
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #27ae60;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h4 style="margin: 0; color: #27ae60;">📤 Copy to Findings</h4>
+                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Select rows and add remarks, then copy to findings for management review</p>
+                        </div>
+                        <button class="btn btn-success" onclick="copySelectedToFindings()">📤 Copy Selected to Findings</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Customer Code <button onclick="sortTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Customer Name <button onclick="sortTable(2)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Type <button onclick="sortTable(3)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Doc. No. <button onclick="sortTable(4)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Posting Date <button onclick="sortTable(5)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Due Date <button onclick="sortTable(6)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Balance Due <button onclick="sortTable(7)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Staff Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardTableBody">
+                            <tr>
+                                <td colspan="9" class="loading">🔐 Please select and login to a branch to view data</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Customer Code</th>
-                            <th>Customer Name</th>
-                            <th>Doc. No.</th>
-                            <th>Balance Due</th>
-                            <th>Staff Remarks</th>
-                            <th>Management Remarks</th>
-                            <th>Date Added</th>
-                        </tr>
-                    </thead>
-                    <tbody id="findingsTableBody">
-                        <tr>
-                            <td colspan="7" class="loading">🔄 Click "Refresh Findings" to load data</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div id="summaryPage" class="page">
+                <div class="controls">
+                    <h3>📈 Debtors Summary</h3>
+                    <div class="controls-grid">
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="refreshSummary()">🔄 Refresh Summary</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCustomers">0</div>
+                        <div class="stat-label">Total Customers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="summaryGrandTotal">₹0</div>
+                        <div class="stat-label">Grand Total</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer Name <button onclick="sortSummaryTable(0)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Total Due Amount <button onclick="sortSummaryTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr>
+                                <td colspan="2" class="loading">🔐 Please select and login to a branch to view data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="findingsPage" class="page">
+                <div class="controls">
+                    <h3>📝 Findings & Remarks Management</h3>
+                    <div class="controls-grid">
+                        <div class="form-group">
+                            <button class="btn btn-primary" onclick="refreshFindings()">🔄 Refresh Findings</button>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-warning" onclick="updateAllRemarks()">💾 Save All Remarks</button>
+                        </div>
+                    </div>
+                    <p style="color: #666; margin-top: 10px; font-size: 14px;">
+                        ✏️ Both staff and management can edit their remarks. Click "Save All Remarks" to update the Google Sheet.
+                    </p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="findingsCount">0</div>
+                        <div class="stat-label">Total Findings</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer Code</th>
+                                <th>Customer Name</th>
+                                <th>Doc. No.</th>
+                                <th>Balance Due</th>
+                                <th>Staff Remarks</th>
+                                <th>Management Remarks</th>
+                                <th>Date Added</th>
+                            </tr>
+                        </thead>
+                        <tbody id="findingsTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">🔐 Please select and login to a branch to view data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration - Replace with your Google Apps Script URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz5XLwZEGT0q3_YUw8uoladqGmh5H9Nfzq4RMFHU591nDBmR51lkYTNdlbIdV_cqLQ/exec';
+        // Configuration - Branch Settings
+        const BRANCH_CONFIG = {
+            nokha: {
+                name: "NOKHA TYRES",
+                username: "nokha_user",
+                password: "nokha123",
+                apiUrl: "YOUR_NOKHA_GOOGLE_APPS_SCRIPT_URL_HERE"
+            },
+            honda: {
+                name: "HONDA",
+                username: "honda_user", 
+                password: "honda123",
+                apiUrl: "YOUR_HONDA_GOOGLE_APPS_SCRIPT_URL_HERE"
+            },
+            bikaner: {
+                name: "BIKANER MAIN",
+                username: "bikaner_user",
+                password: "bikaner123", 
+                apiUrl: "YOUR_BIKANER_GOOGLE_APPS_SCRIPT_URL_HERE"
+            }
+        };
         
         // Global variables
+        let currentBranch = null;
+        let currentApiUrl = null;
         let currentPage = 'dashboard';
         let selectedRows = new Set();
+        let selectedBranchForLogin = null;
         
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             setTodayAsDefault();
-            loadCustomers();
+            // Check if user was previously logged in
+            const savedBranch = localStorage.getItem('bhagwati_current_branch');
+            const savedAuth = localStorage.getItem('bhagwati_auth_token');
+            
+            if (savedBranch && savedAuth && BRANCH_CONFIG[savedBranch]) {
+                // Auto-login to previously selected branch
+                loginToBranch(savedBranch);
+            }
         });
 
         function setTodayAsDefault() {
@@ -489,7 +751,100 @@
             document.getElementById('toDate').value = today;
         }
 
+        function selectBranch(branchKey) {
+            selectedBranchForLogin = branchKey;
+            const branchConfig = BRANCH_CONFIG[branchKey];
+            
+            document.getElementById('loginTitle').textContent = `🔐 Login to ${branchConfig.name}`;
+            document.getElementById('loginModal').style.display = 'block';
+            document.getElementById('loginUsername').focus();
+        }
+
+        function cancelLogin() {
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            selectedBranchForLogin = null;
+        }
+
+        function authenticateBranch() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const branchConfig = BRANCH_CONFIG[selectedBranchForLogin];
+
+            if (username === branchConfig.username && password === branchConfig.password) {
+                // Save authentication
+                localStorage.setItem('bhagwati_current_branch', selectedBranchForLogin);
+                localStorage.setItem('bhagwati_auth_token', 'authenticated');
+                
+                loginToBranch(selectedBranchForLogin);
+                cancelLogin();
+            } else {
+                showError('Invalid username or password. Please try again.');
+            }
+        }
+
+        function loginToBranch(branchKey) {
+            currentBranch = branchKey;
+            const branchConfig = BRANCH_CONFIG[branchKey];
+            currentApiUrl = branchConfig.apiUrl;
+
+            // Update UI
+            document.getElementById('branchSelector').style.display = 'none';
+            document.getElementById('dashboardContent').classList.add('active');
+            document.getElementById('branchInfo').style.display = 'block';
+            document.getElementById('currentBranch').textContent = branchConfig.name;
+            document.getElementById('logoutBtn').style.display = 'block';
+
+            // Load initial data
+            loadCustomers();
+            showSuccess(`Welcome to ${branchConfig.name} dashboard!`);
+        }
+
+        function logout() {
+            // Clear authentication
+            localStorage.removeItem('bhagwati_current_branch');
+            localStorage.removeItem('bhagwati_auth_token');
+            
+            // Reset UI
+            currentBranch = null;
+            currentApiUrl = null;
+            document.getElementById('branchSelector').style.display = 'block';
+            document.getElementById('dashboardContent').classList.remove('active');
+            document.getElementById('branchInfo').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            
+            // Clear any data
+            clearAllData();
+            
+            showSuccess('Logged out successfully');
+        }
+
+        function clearAllData() {
+            // Clear dashboard data
+            document.getElementById('dashboardTableBody').innerHTML = '<tr><td colspan="9" class="loading">🔐 Please select and login to a branch to view data</td></tr>';
+            document.getElementById('summaryTableBody').innerHTML = '<tr><td colspan="2" class="loading">🔐 Please select and login to a branch to view data</td></tr>';
+            document.getElementById('findingsTableBody').innerHTML = '<tr><td colspan="7" class="loading">🔐 Please select and login to a branch to view data</td></tr>';
+            
+            // Reset stats
+            document.getElementById('overdueTotal').textContent = '₹0';
+            document.getElementById('regularTotal').textContent = '₹0';
+            document.getElementById('grandTotal').textContent = '₹0';
+            document.getElementById('recordCount').textContent = '0';
+            document.getElementById('totalCustomers').textContent = '0';
+            document.getElementById('summaryGrandTotal').textContent = '₹0';
+            document.getElementById('findingsCount').textContent = '0';
+            
+            // Clear customer dropdown
+            document.getElementById('customerSelect').innerHTML = '<option value="">All Customers</option>';
+        }
+
         function showPage(pageId) {
+            if (!currentBranch) {
+                showError('Please login to a branch first');
+                return;
+            }
+            
             // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
@@ -510,6 +865,10 @@
         }
 
         async function makeRequest(action, params = {}) {
+            if (!currentApiUrl) {
+                throw new Error('No branch selected. Please login first.');
+            }
+
             const formData = new FormData();
             formData.append('action', action);
             
@@ -517,7 +876,7 @@
                 formData.append(key, params[key]);
             });
 
-            const response = await fetch(API_URL, {
+            const response = await fetch(currentApiUrl, {
                 method: 'POST',
                 body: formData
             });
@@ -549,7 +908,7 @@
             messageDiv.className = type + '-message';
             messageDiv.textContent = message;
 
-            const container = document.querySelector('.page.active');
+            const container = document.querySelector('.container');
             container.insertBefore(messageDiv, container.firstChild);
 
             setTimeout(() => {
@@ -558,6 +917,8 @@
         }
 
         async function loadCustomers() {
+            if (!currentBranch) return;
+            
             try {
                 const customers = await makeRequest('getCustomers');
                 const select = document.getElementById('customerSelect');
@@ -581,6 +942,11 @@
         }
 
         async function refreshDashboard() {
+            if (!currentBranch) {
+                showError('Please login to a branch first');
+                return;
+            }
+            
             const tableBody = document.getElementById('dashboardTableBody');
             tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading dashboard data...</td></tr>';
             
@@ -624,25 +990,14 @@
                 const remarksInput = `<input type="text" placeholder="Add staff remarks..." 
                     onchange="updateRowRemarks(${index}, this.value)" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">`;
 
-                // Format dates in DD/MM/YYYY format
                 const postingDate = formatDate(item.data[4]);
                 const dueDate = formatDate(item.data[5]);
                 
-                // Prepare row data for copying to findings (with formatted dates)
                 const rowDataForCopy = [
-                    item.data[0], // Customer Code
-                    item.data[1], // Customer Name  
-                    item.data[2], // Type
-                    item.data[3], // Doc. No.
-                    postingDate,  // Posting Date (formatted)
-                    dueDate,      // Due Date (formatted)
-                    item.data[6], // Balance Due
-                    '', // Staff Remarks (will be filled from input)
-                    '', // Management Remarks (empty)
-                    formatDate(new Date()) // Date Added (today, formatted)
+                    item.data[0], item.data[1], item.data[2], item.data[3],
+                    postingDate, dueDate, item.data[6], '', '', formatDate(new Date())
                 ];
 
-                // Store the row data for later use
                 item.rowDataForCopy = rowDataForCopy;
 
                 row.innerHTML = `
@@ -660,7 +1015,6 @@
                 tableBody.appendChild(row);
             });
 
-            // Store data globally for row selection
             window.dashboardData = data;
         }
 
@@ -681,12 +1035,16 @@
 
         function updateRowRemarks(index, remarks) {
             if (window.dashboardData && window.dashboardData.data[index]) {
-                // Update the staff remarks in the row data
                 window.dashboardData.data[index].rowDataForCopy[7] = remarks;
             }
         }
 
         async function copySelectedToFindings() {
+            if (!currentBranch) {
+                showError('Please login to a branch first');
+                return;
+            }
+            
             if (selectedRows.size === 0) {
                 showError('Please select at least one row to copy');
                 return;
@@ -712,7 +1070,6 @@
 
                 showSuccess(`${selectedRows.size} row(s) copied to Findings successfully!`);
                 
-                // Clear selections
                 selectedRows.clear();
                 document.querySelectorAll('#dashboardTableBody input[type="checkbox"]').forEach(cb => {
                     cb.checked = false;
@@ -725,6 +1082,11 @@
         }
 
         async function refreshSummary() {
+            if (!currentBranch) {
+                showError('Please login to a branch first');
+                return;
+            }
+            
             const tableBody = document.getElementById('summaryTableBody');
             tableBody.innerHTML = '<tr><td colspan="2" class="loading">🔄 Loading summary data...</td></tr>';
 
@@ -748,9 +1110,7 @@
                 return;
             }
 
-            // Store data globally for sorting
             window.summaryData = data;
-
             tableBody.innerHTML = '';
             
             data.customers.forEach(customer => {
@@ -762,12 +1122,16 @@
                 tableBody.appendChild(row);
             });
 
-            // Update stats
             document.getElementById('totalCustomers').textContent = data.customers.length;
             document.getElementById('summaryGrandTotal').textContent = formatCurrency(data.grandTotal);
         }
 
         async function refreshFindings() {
+            if (!currentBranch) {
+                showError('Please login to a branch first');
+                return;
+            }
+            
             const findingsTableBody = document.getElementById('findingsTableBody');
             findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">🔄 Loading findings...</td></tr>';
 
@@ -776,7 +1140,7 @@
                 
                 if (!findingsData || findingsData.length === 0) {
                     findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings available. Copy some records from the main dashboard first.</td></tr>';
-                    document.getElementById('findingsCount').textContent = '0 findings';
+                    document.getElementById('findingsCount').textContent = '0';
                     return;
                 }
                 
@@ -795,24 +1159,20 @@
             const findingsCount = document.getElementById('findingsCount');
             
             if (!data || data.length === 0) {
-                findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings available. Copy some records from the main dashboard first.</td></tr>';
-                findingsCount.textContent = '0 findings';
+                findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings available.</td></tr>';
+                findingsCount.textContent = '0';
                 return;
             }
 
-            // Store the findings data globally for updates
             window.findingsData = data;
-
             findingsTableBody.innerHTML = '';
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
                 
-                // Staff remarks input (editable)
                 const staffRemarksInput = `<textarea class="remarks-input" placeholder="Enter staff remarks..." 
                     onchange="updateStaffRemarksData(${index}, this.value)" style="min-height: 60px;">${item.staffRemarks || ''}</textarea>`;
                 
-                // Management remarks input (editable)
                 const managementRemarksInput = `<textarea class="remarks-input" placeholder="Enter management remarks..." 
                     onchange="updateManagementRemarksData(${index}, this.value)" style="min-height: 60px;">${item.managementRemarks || ''}</textarea>`;
                 
@@ -829,22 +1189,25 @@
                 findingsTableBody.appendChild(row);
             });
             
-            findingsCount.textContent = `${data.length} findings`;
+            findingsCount.textContent = data.length;
         }
 
         function updateStaffRemarksData(index, remarks) {
-            // Store staff remarks for later update
             if (!window.staffRemarks) window.staffRemarks = {};
             window.staffRemarks[index] = remarks;
         }
 
         function updateManagementRemarksData(index, remarks) {
-            // Store management remarks for later update
             if (!window.managementRemarks) window.managementRemarks = {};
             window.managementRemarks[index] = remarks;
         }
 
         async function updateAllRemarks() {
+            if (!currentBranch) {
+                showError('Please login to a branch first');
+                return;
+            }
+            
             const hasStaffRemarks = window.staffRemarks && Object.keys(window.staffRemarks).length > 0;
             const hasManagementRemarks = window.managementRemarks && Object.keys(window.managementRemarks).length > 0;
             
@@ -861,11 +1224,9 @@
 
                 showSuccess('All remarks saved successfully!');
                 
-                // Clear the pending changes
                 window.staffRemarks = {};
                 window.managementRemarks = {};
                 
-                // Refresh the findings to show updated data
                 setTimeout(refreshFindings, 1000);
                 
             } catch (error) {
@@ -903,11 +1264,6 @@
             }
         }
 
-        function truncateText(text, maxLength) {
-            if (!text || text.length <= maxLength) return text;
-            return text.substring(0, maxLength) + '...';
-        }
-
         let sortDirection = {};
         let summarySortDirection = {};
 
@@ -922,17 +1278,16 @@
             sortDirection[columnIndex] = isAscending;
 
             data.sort((a, b) => {
-                let valueA = a.data[columnIndex - 1]; // -1 because first column is checkbox
+                let valueA = a.data[columnIndex - 1];
                 let valueB = b.data[columnIndex - 1];
 
-                // Handle different data types
-                if (columnIndex === 7) { // Balance Due - numeric
+                if (columnIndex === 7) {
                     valueA = parseFloat(valueA) || 0;
                     valueB = parseFloat(valueB) || 0;
-                } else if (columnIndex === 5 || columnIndex === 6) { // Dates
+                } else if (columnIndex === 5 || columnIndex === 6) {
                     valueA = new Date(valueA);
                     valueB = new Date(valueB);
-                } else { // Text
+                } else {
                     valueA = String(valueA).toLowerCase();
                     valueB = String(valueB).toLowerCase();
                 }
@@ -942,9 +1297,8 @@
                 return 0;
             });
 
-            // Update the table display
             updateDashboardTable(window.dashboardData);
-            showSuccess(`Table sorted by column ${columnIndex} (${isAscending ? 'ascending' : 'descending'})`);
+            showSuccess(`Table sorted (${isAscending ? 'ascending' : 'descending'})`);
         }
 
         function sortSummaryTable(columnIndex) {
@@ -960,10 +1314,10 @@
             data.sort((a, b) => {
                 let valueA, valueB;
 
-                if (columnIndex === 0) { // Customer Name
+                if (columnIndex === 0) {
                     valueA = String(a.customer).toLowerCase();
                     valueB = String(b.customer).toLowerCase();
-                } else { // Total Due Amount
+                } else {
                     valueA = parseFloat(a.total) || 0;
                     valueB = parseFloat(b.total) || 0;
                 }
@@ -973,12 +1327,18 @@
                 return 0;
             });
 
-            // Update the summary table display
             updateSummaryTable(window.summaryData);
             
             const columnName = columnIndex === 0 ? 'Customer Name' : 'Total Due Amount';
             showSuccess(`Summary sorted by ${columnName} (${isAscending ? 'ascending' : 'descending'})`);
         }
+
+        // Handle Enter key in login form
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('loginModal').style.display === 'block') {
+                authenticateBranch();
+            }
+        });
     </script>
 </body>
 </html>
