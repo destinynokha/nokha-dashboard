@@ -40,6 +40,49 @@
             margin-bottom: 5px;
         }
 
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-right: 1px solid #e1e5e9;
+        }
+
+        .nav-tab:last-child {
+            border-right: none;
+        }
+
+        .nav-tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: #e8f0fe;
+        }
+
+        /* Page Content */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
         .controls {
             background: white;
             padding: 25px;
@@ -66,7 +109,7 @@
             color: #333;
         }
 
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             padding: 12px;
             border: 2px solid #e1e5e9;
             border-radius: 8px;
@@ -75,7 +118,12 @@
             transition: all 0.3s ease;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #1a73e8;
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
@@ -107,6 +155,16 @@
 
         .btn-success:hover {
             background: #2d9142;
+        }
+
+        .btn-warning {
+            background: #fbbc04;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #ea8600;
+            color: white;
         }
 
         .totals {
@@ -163,6 +221,15 @@
             padding: 15px 20px;
             font-weight: 600;
             border-bottom: 2px solid #e8f5e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .table-container {
@@ -207,6 +274,15 @@
             cursor: pointer;
         }
 
+        .remarks-input {
+            width: 100%;
+            min-width: 150px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -244,6 +320,57 @@
             margin-bottom: 15px;
         }
 
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sort-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .sort-btn.active {
+            background: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+
+        .sort-btn:hover:not(.active) {
+            background: #f1f3f4;
+        }
+
+        .remarks-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .remark-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #1a73e8;
+        }
+
+        .remark-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .remark-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
         @media (max-width: 768px) {
             .controls-grid {
                 grid-template-columns: 1fr;
@@ -251,6 +378,10 @@
             
             .totals {
                 grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
             }
             
             table {
@@ -267,7 +398,7 @@
     <div class="container">
         <div class="header">
             <h1>📊 NOKHA TYRES Debtors Dashboard</h1>
-            <p>Manage and track customer debts efficiently</p>
+            <p>Comprehensive debt management and tracking system</p>
         </div>
 
         <div class="config-section">
@@ -280,88 +411,186 @@
                     Replace YOUR_SCRIPT_ID with your actual Google Apps Script deployment ID
                 </small>
             </div>
+            <button class="btn btn-primary" onclick="loadCustomers()" style="margin-top: 10px;">
+                🔄 Load Customers
+            </button>
         </div>
 
-        <div class="controls">
-            <div class="controls-grid">
-                <div class="form-group">
-                    <label for="fromDate">From Date:</label>
-                    <input type="date" id="fromDate">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showPage('dashboard')">📊 Main Dashboard</button>
+            <button class="nav-tab" onclick="showPage('summary')">👥 Debtor Summary</button>
+            <button class="nav-tab" onclick="showPage('findings')">📝 Findings & Remarks</button>
+        </div>
+
+        <!-- Page 1: Main Dashboard -->
+        <div id="dashboard" class="page active">
+            <div class="controls">
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label for="fromDate">From Date:</label>
+                        <input type="date" id="fromDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toDate">To Date:</label>
+                        <input type="date" id="toDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer">Select Customer:</label>
+                        <select id="customer">
+                            <option value="">All Customers</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dueDays">Due Days:</label>
+                        <input type="number" id="dueDays" value="7" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="refreshDashboard()">
+                            📊 Refresh Dashboard
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="toDate">To Date:</label>
-                    <input type="date" id="toDate">
+            </div>
+
+            <div class="totals" id="totals">
+                <div class="total-card grand">
+                    <h3>Total Debtors</h3>
+                    <div class="amount" id="totalDebtors">₹0.00</div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="customer">Select Customer:</label>
-                    <select id="customer">
-                        <option value="">All Customers</option>
-                    </select>
+                <div class="total-card overdue">
+                    <h3>Overdue Total</h3>
+                    <div class="amount" id="overdueTotal">₹0.00</div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="dueDays">Due Days:</label>
-                    <input type="number" id="dueDays" value="7" min="0">
+                <div class="total-card regular">
+                    <h3>Regular Total</h3>
+                    <div class="amount" id="regularTotal">₹0.00</div>
                 </div>
-                
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="refreshDashboard()">
-                        📊 Refresh Dashboard
-                    </button>
+                <div class="total-card grand">
+                    <h3>Grand Total</h3>
+                    <div class="amount" id="grandTotal">₹0.00</div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <div class="table-header">
+                    <span>📋 Debtors Data</span>
+                    <div class="table-controls">
+                        <button class="btn btn-success" onclick="copySelectedToFindings()">
+                            📤 Copy Selected to Findings
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead id="tableHeader">
+                            <tr>
+                                <th>Select</th>
+                                <th>Customer Code</th>
+                                <th>Customer Name</th>
+                                <th>Type</th>
+                                <th>Doc. No.</th>
+                                <th>Posting Date</th>
+                                <th>Due Date</th>
+                                <th>Balance Due</th>
+                                <th>Staff Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="9" class="loading">
+                                    🔄 Click "Refresh Dashboard" to load data
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <div class="totals" id="totals">
-            <div class="total-card grand">
-                <h3>Total Debtors</h3>
-                <div class="amount" id="totalDebtors">₹0.00</div>
+        <!-- Page 2: Debtor Summary -->
+        <div id="summary" class="page">
+            <div class="controls">
+                <h3>👥 Customer-wise Outstanding Summary</h3>
+                <div class="sort-controls">
+                    <button class="sort-btn active" onclick="sortSummary('amount')">Sort by Amount (High to Low)</button>
+                    <button class="sort-btn" onclick="sortSummary('name')">Sort by Name (A to Z)</button>
+                    <button class="btn btn-primary" onclick="refreshSummary()">🔄 Refresh Summary</button>
+                </div>
             </div>
-            <div class="total-card overdue">
-                <h3>Overdue Total</h3>
-                <div class="amount" id="overdueTotal">₹0.00</div>
-            </div>
-            <div class="total-card regular">
-                <h3>Regular Total</h3>
-                <div class="amount" id="regularTotal">₹0.00</div>
-            </div>
-            <div class="total-card grand">
-                <h3>Grand Total</h3>
-                <div class="amount" id="grandTotal">₹0.00</div>
+
+            <div class="data-table">
+                <div class="table-header">
+                    <span>📈 Customer Summary</span>
+                    <span id="summaryCount">0 customers</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>S.No.</th>
+                                <th>Customer Name</th>
+                                <th>Total Outstanding</th>
+                                <th>% of Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr>
+                                <td colspan="4" class="loading">
+                                    🔄 Click "Refresh Summary" to load data
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div class="data-table">
-            <div class="table-header">
-                <span>📋 Debtors Data</span>
-                <button class="btn btn-success" onclick="copySelectedToFindings()" style="float: right;">
-                    📤 Copy Selected to Findings
-                </button>
+        <!-- Page 3: Findings & Remarks -->
+        <div id="findings" class="page">
+            <div class="controls">
+                <h3>📝 Findings & Remarks Management</h3>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="refreshFindings()">🔄 Refresh Findings</button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-warning" onclick="updateAllRemarks()">💾 Save All Remarks</button>
+                    </div>
+                </div>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead id="tableHeader">
-                        <tr>
-                            <th>Select</th>
-                            <th>Invoice</th>
-                            <th>Customer</th>
-                            <th>Days</th>
-                            <th>Type</th>
-                            <th>Due Date</th>
-                            <th>Paid</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr>
-                            <td colspan="8" class="loading">
-                                🔄 Click "Refresh Dashboard" to load data
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <div class="data-table">
+                <div class="table-header">
+                    <span>📋 Findings with Staff & Management Remarks</span>
+                    <span id="findingsCount">0 findings</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer Code</th>
+                                <th>Customer Name</th>
+                                <th>Doc. No.</th>
+                                <th>Balance Due</th>
+                                <th>Staff Remarks</th>
+                                <th>Management Remarks</th>
+                                <th>Date Added</th>
+                            </tr>
+                        </thead>
+                        <tbody id="findingsTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">
+                                    🔄 Click "Refresh Findings" to load data
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -369,6 +598,8 @@
     <script>
         let currentData = [];
         let selectedRows = new Set();
+        let summaryData = [];
+        let currentSortBy = 'amount';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -377,17 +608,27 @@
             const toDateInput = document.getElementById('toDate');
             toDateInput.value = today.toISOString().split('T')[0];
             
-            // Add manual load button for debugging
-            const loadButton = document.createElement('button');
-            loadButton.textContent = '🔄 Load Customers';
-            loadButton.className = 'btn btn-primary';
-            loadButton.style.marginLeft = '10px';
-            loadButton.onclick = loadCustomers;
-            document.querySelector('.config-section').appendChild(loadButton);
-            
-            // Load customers automatically
-            setTimeout(loadCustomers, 1000); // Delay to ensure API URL is set
+            // Load customers automatically after a delay
+            setTimeout(loadCustomers, 1000);
         });
+
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Mark active tab
+            event.target.classList.add('active');
+        }
 
         async function makeRequest(action, params = {}) {
             const apiUrl = document.getElementById('apiUrl').value.trim();
@@ -457,6 +698,7 @@
                         }
                     });
                     console.log(`Added ${customers.length} customers to dropdown`);
+                    showSuccess(`Loaded ${customers.length} customers successfully!`);
                 } else {
                     console.warn('No customers found or invalid response:', customers);
                     const option = document.createElement('option');
@@ -479,7 +721,7 @@
 
         async function refreshDashboard() {
             const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '<tr><td colspan="8" class="loading">🔄 Loading data...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading data...</td></tr>';
 
             try {
                 const params = {
@@ -502,7 +744,7 @@
             } catch (error) {
                 console.error('Error refreshing dashboard:', error);
                 showError('Failed to refresh dashboard: ' + error.message);
-                tableBody.innerHTML = '<tr><td colspan="8" class="error">❌ Failed to load data</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="9" class="error">❌ Failed to load data</td></tr>';
             }
         }
 
@@ -517,7 +759,7 @@
             const tableBody = document.getElementById('tableBody');
             
             if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="8" class="loading">📭 No data found matching your criteria</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="9" class="loading">📭 No data found matching your criteria</td></tr>';
                 return;
             }
 
@@ -530,6 +772,8 @@
                 }
 
                 const checkbox = `<input type="checkbox" class="checkbox" onchange="toggleRowSelection(${index}, this.checked)">`;
+                const remarksInput = `<input type="text" class="remarks-input" placeholder="Enter staff remarks..." 
+                                    onchange="updateRowRemarks(${index}, this.value)" value="">`;
                 
                 row.innerHTML = `
                     <td>${checkbox}</td>
@@ -538,8 +782,9 @@
                     <td>${item.data[2] || ''}</td>
                     <td>${item.data[3] || ''}</td>
                     <td>${formatDate(item.data[4])}</td>
-                    <td>${item.data[5] || ''}</td>
+                    <td>${formatDate(item.data[5])}</td>
                     <td>${formatCurrency(item.data[6])}</td>
+                    <td>${remarksInput}</td>
                 `;
                 
                 tableBody.appendChild(row);
@@ -554,6 +799,12 @@
             }
         }
 
+        function updateRowRemarks(index, remarks) {
+            if (currentData[index]) {
+                currentData[index].staffRemarks = remarks;
+            }
+        }
+
         async function copySelectedToFindings() {
             if (selectedRows.size === 0) {
                 showError('Please select at least one row to copy');
@@ -561,7 +812,12 @@
             }
 
             try {
-                const rowsData = Array.from(selectedRows).map(index => currentData[index].data);
+                const rowsData = Array.from(selectedRows).map(index => {
+                    const item = currentData[index];
+                    // Include staff remarks in the data
+                    const rowWithRemarks = [...item.data, item.staffRemarks || '', '', new Date().toLocaleDateString()];
+                    return rowWithRemarks;
+                });
                 
                 await makeRequest('copyToFindings', {
                     selectedRows: JSON.stringify(rowsData)
@@ -579,6 +835,147 @@
             }
         }
 
+        async function refreshSummary() {
+            const summaryTableBody = document.getElementById('summaryTableBody');
+            summaryTableBody.innerHTML = '<tr><td colspan="4" class="loading">🔄 Loading summary...</td></tr>';
+
+            try {
+                const totalDebtorsData = await makeRequest('getTotalDebtors');
+                summaryData = totalDebtorsData.customers;
+                updateSummaryTable();
+                
+                showSuccess('Summary refreshed successfully!');
+            } catch (error) {
+                console.error('Error refreshing summary:', error);
+                showError('Failed to refresh summary: ' + error.message);
+                summaryTableBody.innerHTML = '<tr><td colspan="4" class="error">❌ Failed to load summary</td></tr>';
+            }
+        }
+
+        function sortSummary(sortBy) {
+            currentSortBy = sortBy;
+            
+            // Update button states
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateSummaryTable();
+        }
+
+        function updateSummaryTable() {
+            const summaryTableBody = document.getElementById('summaryTableBody');
+            const summaryCount = document.getElementById('summaryCount');
+            
+            if (summaryData.length === 0) {
+                summaryTableBody.innerHTML = '<tr><td colspan="4" class="loading">📭 No summary data available</td></tr>';
+                summaryCount.textContent = '0 customers';
+                return;
+            }
+
+            // Sort data
+            let sortedData = [...summaryData];
+            if (currentSortBy === 'amount') {
+                sortedData.sort((a, b) => b.total - a.total);
+            } else {
+                sortedData.sort((a, b) => a.customer.localeCompare(b.customer));
+            }
+
+            const grandTotal = sortedData.reduce((sum, item) => sum + item.total, 0);
+            
+            summaryTableBody.innerHTML = '';
+            
+            sortedData.forEach((item, index) => {
+                const percentage = grandTotal > 0 ? ((item.total / grandTotal) * 100).toFixed(2) : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.customer}</td>
+                    <td>${formatCurrency(item.total)}</td>
+                    <td>${percentage}%</td>
+                `;
+                
+                summaryTableBody.appendChild(row);
+            });
+            
+            summaryCount.textContent = `${sortedData.length} customers`;
+        }
+
+        async function refreshFindings() {
+            const findingsTableBody = document.getElementById('findingsTableBody');
+            findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">🔄 Loading findings...</td></tr>';
+
+            try {
+                const findingsData = await makeRequest('getFindings');
+                updateFindingsTable(findingsData);
+                
+                showSuccess('Findings refreshed successfully!');
+            } catch (error) {
+                console.error('Error refreshing findings:', error);
+                showError('Failed to refresh findings: ' + error.message);
+                findingsTableBody.innerHTML = '<tr><td colspan="7" class="error">❌ Failed to load findings</td></tr>';
+            }
+        }
+
+        function updateFindingsTable(data) {
+            const findingsTableBody = document.getElementById('findingsTableBody');
+            const findingsCount = document.getElementById('findingsCount');
+            
+            if (!data || data.length === 0) {
+                findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings data available</td></tr>';
+                findingsCount.textContent = '0 findings';
+                return;
+            }
+
+            findingsTableBody.innerHTML = '';
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const managementRemarksInput = `<textarea class="remarks-input" placeholder="Management remarks..." 
+                    onchange="updateManagementRemarks(${index}, this.value)" style="min-height: 60px;">${item.managementRemarks || ''}</textarea>`;
+                
+                row.innerHTML = `
+                    <td>${item.customerCode || ''}</td>
+                    <td>${item.customerName || ''}</td>
+                    <td>${item.docNo || ''}</td>
+                    <td>${formatCurrency(item.balanceDue)}</td>
+                    <td title="${item.staffRemarks || ''}">${truncateText(item.staffRemarks || '', 50)}</td>
+                    <td>${managementRemarksInput}</td>
+                    <td>${formatDate(item.dateAdded)}</td>
+                `;
+                
+                findingsTableBody.appendChild(row);
+            });
+            
+            findingsCount.textContent = `${data.length} findings`;
+        }
+
+        function updateManagementRemarks(index, remarks) {
+            // Store management remarks for later update
+            if (!window.managementRemarks) window.managementRemarks = {};
+            window.managementRemarks[index] = remarks;
+        }
+
+        async function updateAllRemarks() {
+            if (!window.managementRemarks || Object.keys(window.managementRemarks).length === 0) {
+                showError('No remarks to save');
+                return;
+            }
+
+            try {
+                await makeRequest('updateManagementRemarks', {
+                    remarks: JSON.stringify(window.managementRemarks)
+                });
+
+                showSuccess('Management remarks saved successfully!');
+                window.managementRemarks = {};
+                
+            } catch (error) {
+                console.error('Error saving remarks:', error);
+                showError('Failed to save remarks: ' + error.message);
+            }
+        }
+
         function formatCurrency(amount) {
             if (amount == null || amount === '') return '₹0.00';
             return '₹' + parseFloat(amount).toLocaleString('en-IN', {
@@ -592,12 +989,17 @@
             return new Date(date).toLocaleDateString('en-IN');
         }
 
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+
         function showError(message) {
             removeExistingMessages();
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error';
             errorDiv.textContent = '❌ ' + message;
-            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.controls'));
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.nav-tabs'));
             setTimeout(() => errorDiv.remove(), 5000);
         }
 
@@ -606,7 +1008,7 @@
             const successDiv = document.createElement('div');
             successDiv.className = 'success';
             successDiv.textContent = '✅ ' + message;
-            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.controls'));
+            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.nav-tabs'));
             setTimeout(() => successDiv.remove(), 3000);
         }
 
