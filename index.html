@@ -401,21 +401,6 @@
             <p>Comprehensive debt management and tracking system</p>
         </div>
 
-        <div class="config-section">
-            <h3>⚙️ Configuration</h3>
-            <div class="form-group">
-                <label for="apiUrl">Google Apps Script Web App URL:</label>
-                <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec" 
-                       value="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec">
-                <small style="color: #666; margin-top: 5px;">
-                    Replace YOUR_SCRIPT_ID with your actual Google Apps Script deployment ID
-                </small>
-            </div>
-            <button class="btn btn-primary" onclick="loadCustomers()" style="margin-top: 10px;">
-                🔄 Load Customers
-            </button>
-        </div>
-
         <!-- Navigation Tabs -->
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showPage('dashboard')">📊 Main Dashboard</button>
@@ -596,6 +581,9 @@
     </div>
 
     <script>
+        // Configuration - Replace this URL with your actual Google Apps Script deployment URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyPYfJQI9kFy0QOcbfGJqUng-JdUfEFDaop1PPApMzXQF37vmmqedcpYB-3B4aLqVRIwQ/exec';
+        
         let currentData = [];
         let selectedRows = new Set();
         let summaryData = [];
@@ -631,10 +619,8 @@
         }
 
         async function makeRequest(action, params = {}) {
-            const apiUrl = document.getElementById('apiUrl').value.trim();
-            
-            if (!apiUrl || apiUrl === 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec') {
-                throw new Error('Please configure your Google Apps Script Web App URL first');
+            if (!API_URL || API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                throw new Error('Please configure the API_URL in the script. Contact your administrator.');
             }
 
             console.log(`Making request: ${action}`, params);
@@ -646,7 +632,7 @@
                 formData.append(key, params[key]);
             });
 
-            const response = await fetch(apiUrl, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 body: formData,
                 redirect: 'follow'
