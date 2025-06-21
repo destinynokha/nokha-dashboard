@@ -377,8 +377,16 @@
             const toDateInput = document.getElementById('toDate');
             toDateInput.value = today.toISOString().split('T')[0];
             
-            // Load customers
-            loadCustomers();
+            // Add manual load button for debugging
+            const loadButton = document.createElement('button');
+            loadButton.textContent = '🔄 Load Customers';
+            loadButton.className = 'btn btn-primary';
+            loadButton.style.marginLeft = '10px';
+            loadButton.onclick = loadCustomers;
+            document.querySelector('.config-section').appendChild(loadButton);
+            
+            // Load customers automatically
+            setTimeout(loadCustomers, 1000); // Delay to ensure API URL is set
         });
 
         async function makeRequest(action, params = {}) {
@@ -387,6 +395,8 @@
             if (!apiUrl || apiUrl === 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec') {
                 throw new Error('Please configure your Google Apps Script Web App URL first');
             }
+
+            console.log(`Making request: ${action}`, params);
 
             const formData = new FormData();
             formData.append('action', action);
@@ -397,39 +407,73 @@
 
             const response = await fetch(apiUrl, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                redirect: 'follow'
             });
+
+            console.log('Response status:', response.status);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const result = await response.json();
+            const textResponse = await response.text();
+            console.log('Raw response:', textResponse);
+
+            let result;
+            try {
+                result = JSON.parse(textResponse);
+            } catch (e) {
+                console.error('Failed to parse JSON:', textResponse);
+                throw new Error('Invalid JSON response from server');
+            }
             
             if (result.error) {
                 throw new Error(result.error);
             }
 
+            console.log('Parsed result:', result);
             return result;
         }
 
         async function loadCustomers() {
             try {
+                console.log('Loading customers...');
                 const customers = await makeRequest('getCustomers');
+                console.log('Received customers:', customers);
+                
                 const customerSelect = document.getElementById('customer');
                 
                 // Clear existing options except "All Customers"
                 customerSelect.innerHTML = '<option value="">All Customers</option>';
                 
-                customers.forEach(customer => {
+                if (Array.isArray(customers) && customers.length > 0) {
+                    customers.forEach(customer => {
+                        if (customer && customer.trim() !== '') {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            customerSelect.appendChild(option);
+                        }
+                    });
+                    console.log(`Added ${customers.length} customers to dropdown`);
+                } else {
+                    console.warn('No customers found or invalid response:', customers);
                     const option = document.createElement('option');
-                    option.value = customer;
-                    option.textContent = customer;
+                    option.value = '';
+                    option.textContent = 'No customers found';
                     customerSelect.appendChild(option);
-                });
+                }
             } catch (error) {
                 console.error('Error loading customers:', error);
                 showError('Failed to load customers: ' + error.message);
+                
+                // Add debug option
+                const customerSelect = document.getElementById('customer');
+                const debugOption = document.createElement('option');
+                debugOption.value = '';
+                debugOption.textContent = 'Error: ' + error.message;
+                customerSelect.appendChild(debugOption);
             }
         }
 
