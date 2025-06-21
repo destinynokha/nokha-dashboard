@@ -547,6 +547,9 @@
                         <button class="btn btn-warning" onclick="updateAllRemarks()">💾 Save All Remarks</button>
                     </div>
                 </div>
+                <p style="color: #666; margin-top: 10px; font-size: 14px;">
+                    ✏️ Both staff and management can edit their remarks. Click "Save All Remarks" to update the Google Sheet.
+                </p>
             </div>
 
             <div class="data-table">
@@ -582,7 +585,7 @@
 
     <script>
         // Configuration - Replace this URL with your actual Google Apps Script deployment URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyPYfJQI9kFy0QOcbfGJqUng-JdUfEFDaop1PPApMzXQF37vmmqedcpYB-3B4aLqVRIwQ/exec';
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         
         let currentData = [];
         let selectedRows = new Set();
@@ -918,19 +921,28 @@
                 return;
             }
 
+            // Store the findings data globally for updates
+            window.findingsData = data;
+
             findingsTableBody.innerHTML = '';
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
+                
+                // Staff remarks input (editable)
+                const staffRemarksInput = `<textarea class="remarks-input" placeholder="Enter staff remarks..." 
+                    onchange="updateStaffRemarksData(${index}, this.value)" style="min-height: 60px;">${item.staffRemarks || ''}</textarea>`;
+                
+                // Management remarks input (editable)
                 const managementRemarksInput = `<textarea class="remarks-input" placeholder="Enter management remarks..." 
-                    onchange="updateManagementRemarks(${index}, this.value)" style="min-height: 60px;">${item.managementRemarks || ''}</textarea>`;
+                    onchange="updateManagementRemarksData(${index}, this.value)" style="min-height: 60px;">${item.managementRemarks || ''}</textarea>`;
                 
                 row.innerHTML = `
                     <td>${item.customerCode || ''}</td>
                     <td>${item.customerName || ''}</td>
                     <td>${item.docNo || ''}</td>
                     <td>${formatCurrency(item.balanceDue)}</td>
-                    <td title="${item.staffRemarks || 'No staff remarks'}">${truncateText(item.staffRemarks || 'No remarks', 50)}</td>
+                    <td>${staffRemarksInput}</td>
                     <td>${managementRemarksInput}</td>
                     <td>${formatDate(item.dateAdded)}</td>
                 `;
@@ -941,25 +953,41 @@
             findingsCount.textContent = `${data.length} findings`;
         }
 
-        function updateManagementRemarks(index, remarks) {
+        function updateStaffRemarksData(index, remarks) {
+            // Store staff remarks for later update
+            if (!window.staffRemarks) window.staffRemarks = {};
+            window.staffRemarks[index] = remarks;
+        }
+
+        function updateManagementRemarksData(index, remarks) {
             // Store management remarks for later update
             if (!window.managementRemarks) window.managementRemarks = {};
             window.managementRemarks[index] = remarks;
         }
 
         async function updateAllRemarks() {
-            if (!window.managementRemarks || Object.keys(window.managementRemarks).length === 0) {
+            const hasStaffRemarks = window.staffRemarks && Object.keys(window.staffRemarks).length > 0;
+            const hasManagementRemarks = window.managementRemarks && Object.keys(window.managementRemarks).length > 0;
+            
+            if (!hasStaffRemarks && !hasManagementRemarks) {
                 showError('No remarks to save');
                 return;
             }
 
             try {
-                await makeRequest('updateManagementRemarks', {
-                    remarks: JSON.stringify(window.managementRemarks)
+                await makeRequest('updateAllFindings', {
+                    staffRemarks: JSON.stringify(window.staffRemarks || {}),
+                    managementRemarks: JSON.stringify(window.managementRemarks || {})
                 });
 
-                showSuccess('Management remarks saved successfully!');
+                showSuccess('All remarks saved successfully!');
+                
+                // Clear the pending changes
+                window.staffRemarks = {};
                 window.managementRemarks = {};
+                
+                // Refresh the findings to show updated data
+                setTimeout(refreshFindings, 1000);
                 
             } catch (error) {
                 console.error('Error saving remarks:', error);
