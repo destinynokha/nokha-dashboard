@@ -546,6 +546,15 @@
                     <div class="form-group">
                         <button class="btn btn-warning" onclick="updateAllRemarks()">💾 Save All Remarks</button>
                     </div>
+                </div>
+                <p style="color: #666; margin-top: 10px; font-size: 14px;">
+                    ✏️ Both staff and management can edit their remarks. Click "Save All Remarks" to update the Google Sheet.
+                </p>
+            </div> btn-primary" onclick="refreshFindings()">🔄 Refresh Findings</button>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-warning" onclick="updateAllRemarks()">💾 Save All Remarks</button>
+                    </div>
                     <div class="form-group">
                         <button class="btn" onclick="debugFindings()" style="background: #9aa0a6; color: white;">🔍 Debug Findings</button>
                     </div>
@@ -588,7 +597,7 @@
 
     <script>
         // Configuration - Replace this URL with your actual Google Apps Script deployment URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz5XLwZEGT0q3_YUw8uoladqGmh5H9Nfzq4RMFHU591nDBmR51lkYTNdlbIdV_cqLQ/exec';
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         
         let currentData = [];
         let selectedRows = new Set();
@@ -903,9 +912,9 @@
                 console.log('Received findings data:', findingsData);
                 
                 if (!findingsData || findingsData.length === 0) {
-                    findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings available. Copy some records from the main dashboard to get started.</td></tr>';
+                    findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 Findings sheet exists but is empty. Copy some records from the main dashboard to get started.</td></tr>';
                     document.getElementById('findingsCount').textContent = '0 findings';
-                    showError('No findings found. Please copy some data from the main dashboard first.');
+                    showSuccess('Findings sheet found but empty. Ready to receive data from main dashboard.');
                     return;
                 }
                 
@@ -915,32 +924,7 @@
             } catch (error) {
                 console.error('Error refreshing findings:', error);
                 showError('Failed to refresh findings: ' + error.message);
-                findingsTableBody.innerHTML = '<tr><td colspan="7" class="error">❌ Failed to load findings. ' + error.message + '</td></tr>';
-            }
-        }
-
-        async function debugFindings() {
-            try {
-                console.log('Debugging findings...');
-                const debugData = await makeRequest('debugFindings');
-                console.log('Debug data:', debugData);
-                
-                let message = '🔍 Findings Sheet Debug Info:\n';
-                message += `- Sheet exists: ${debugData.exists}\n`;
-                if (debugData.exists) {
-                    message += `- Last row: ${debugData.lastRow}\n`;
-                    message += `- Last column: ${debugData.lastColumn}\n`;
-                    message += `- Has data: ${debugData.hasData}\n`;
-                    if (debugData.sampleData && debugData.sampleData.length > 0) {
-                        message += `- Sample data: ${JSON.stringify(debugData.sampleData[0])}\n`;
-                    }
-                }
-                
-                alert(message);
-                
-            } catch (error) {
-                console.error('Error debugging findings:', error);
-                showError('Debug failed: ' + error.message);
+                findingsTableBody.innerHTML = '<tr><td colspan="7" class="error">❌ Error: ' + error.message + '</td></tr>';
             }
         }
 
