@@ -330,9 +330,35 @@
                     <div class="form-group">
                         <button class="btn btn-primary" onclick="refreshDashboard()">📊 Refresh Dashboard</button>
                     </div>
-                    <div class="form-group">
-                        <button class="btn btn-success" onclick="copySelectedToFindings()">📤 Copy Selected to Findings</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="overdueTotal">₹0</div>
+                    <div class="stat-label">Overdue Amount</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="regularTotal">₹0</div>
+                    <div class="stat-label">Regular Amount</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="grandTotal">₹0</div>
+                    <div class="stat-label">Total Amount</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="recordCount">0</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+            </div>
+
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #27ae60;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h4 style="margin: 0; color: #27ae60;">📤 Copy to Findings</h4>
+                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Select rows and add remarks, then copy to findings for management review</p>
                     </div>
+                    <button class="btn btn-success" onclick="copySelectedToFindings()">📤 Copy Selected to Findings</button>
                 </div>
             </div>
 
@@ -465,7 +491,7 @@
 
     <script>
         // Configuration - Replace with your Google Apps Script URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz5XLwZEGT0q3_YUw8uoladqGmh5H9Nfzq4RMFHU591nDBmR51lkYTNdlbIdV_cqLQ/exec';
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         
         // Global variables
         let currentPage = 'dashboard';
