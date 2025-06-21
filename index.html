@@ -301,7 +301,7 @@
     <div class="container">
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showPage('dashboard')">📊 Main Dashboard</button>
-            <button class="nav-tab" onclick="showPage('summary')">📈 Debtor Summary</button>
+            <button class="nav-tab" onclick="showPage('summary')">📈 Debtors Summary</button>
             <button class="nav-tab" onclick="showPage('findings')">📝 Findings & Remarks</button>
         </div>
 
@@ -362,37 +362,18 @@
                 </div>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="overdueTotal">₹0</div>
-                    <div class="stat-label">Overdue Amount</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="regularTotal">₹0</div>
-                    <div class="stat-label">Regular Amount</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="grandTotal">₹0</div>
-                    <div class="stat-label">Total Amount</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="recordCount">0</div>
-                    <div class="stat-label">Total Records</div>
-                </div>
-            </div>
-
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Select</th>
-                            <th>Customer Code</th>
-                            <th>Customer Name</th>
-                            <th>Type</th>
-                            <th>Doc. No.</th>
-                            <th>Posting Date</th>
-                            <th>Due Date</th>
-                            <th>Balance Due</th>
+                            <th>Customer Code <button onclick="sortTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Customer Name <button onclick="sortTable(2)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Type <button onclick="sortTable(3)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Doc. No. <button onclick="sortTable(4)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Posting Date <button onclick="sortTable(5)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Due Date <button onclick="sortTable(6)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Balance Due <button onclick="sortTable(7)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
                             <th>Staff Remarks</th>
                         </tr>
                     </thead>
@@ -407,7 +388,7 @@
 
         <div id="summaryPage" class="page">
             <div class="controls">
-                <h3>📈 Customer Summary</h3>
+                <h3>📈 Debtors Summary</h3>
                 <div class="controls-grid">
                     <div class="form-group">
                         <button class="btn btn-primary" onclick="refreshSummary()">🔄 Refresh Summary</button>
@@ -430,8 +411,8 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Customer Name</th>
-                            <th>Total Due Amount</th>
+                            <th>Customer Name <button onclick="sortSummaryTable(0)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                            <th>Total Due Amount <button onclick="sortSummaryTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
                         </tr>
                     </thead>
                     <tbody id="summaryTableBody">
@@ -491,7 +472,7 @@
 
     <script>
         // Configuration - Replace with your Google Apps Script URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbz5XLwZEGT0q3_YUw8uoladqGmh5H9Nfzq4RMFHU591nDBmR51lkYTNdlbIdV_cqLQ/exec';
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         
         // Global variables
         let currentPage = 'dashboard';
@@ -767,6 +748,9 @@
                 return;
             }
 
+            // Store data globally for sorting
+            window.summaryData = data;
+
             tableBody.innerHTML = '';
             
             data.customers.forEach(customer => {
@@ -922,6 +906,78 @@
         function truncateText(text, maxLength) {
             if (!text || text.length <= maxLength) return text;
             return text.substring(0, maxLength) + '...';
+        }
+
+        let sortDirection = {};
+        let summarySortDirection = {};
+
+        function sortTable(columnIndex) {
+            if (!window.dashboardData || !window.dashboardData.data) {
+                showError('No data to sort. Please refresh dashboard first.');
+                return;
+            }
+
+            const data = window.dashboardData.data;
+            const isAscending = !sortDirection[columnIndex];
+            sortDirection[columnIndex] = isAscending;
+
+            data.sort((a, b) => {
+                let valueA = a.data[columnIndex - 1]; // -1 because first column is checkbox
+                let valueB = b.data[columnIndex - 1];
+
+                // Handle different data types
+                if (columnIndex === 7) { // Balance Due - numeric
+                    valueA = parseFloat(valueA) || 0;
+                    valueB = parseFloat(valueB) || 0;
+                } else if (columnIndex === 5 || columnIndex === 6) { // Dates
+                    valueA = new Date(valueA);
+                    valueB = new Date(valueB);
+                } else { // Text
+                    valueA = String(valueA).toLowerCase();
+                    valueB = String(valueB).toLowerCase();
+                }
+
+                if (valueA < valueB) return isAscending ? -1 : 1;
+                if (valueA > valueB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Update the table display
+            updateDashboardTable(window.dashboardData);
+            showSuccess(`Table sorted by column ${columnIndex} (${isAscending ? 'ascending' : 'descending'})`);
+        }
+
+        function sortSummaryTable(columnIndex) {
+            if (!window.summaryData || !window.summaryData.customers) {
+                showError('No summary data to sort. Please refresh summary first.');
+                return;
+            }
+
+            const data = window.summaryData.customers;
+            const isAscending = !summarySortDirection[columnIndex];
+            summarySortDirection[columnIndex] = isAscending;
+
+            data.sort((a, b) => {
+                let valueA, valueB;
+
+                if (columnIndex === 0) { // Customer Name
+                    valueA = String(a.customer).toLowerCase();
+                    valueB = String(b.customer).toLowerCase();
+                } else { // Total Due Amount
+                    valueA = parseFloat(a.total) || 0;
+                    valueB = parseFloat(b.total) || 0;
+                }
+
+                if (valueA < valueB) return isAscending ? -1 : 1;
+                if (valueA > valueB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Update the summary table display
+            updateSummaryTable(window.summaryData);
+            
+            const columnName = columnIndex === 0 ? 'Customer Name' : 'Total Due Amount';
+            showSuccess(`Summary sorted by ${columnName} (${isAscending ? 'ascending' : 'descending'})`);
         }
     </script>
 </body>
