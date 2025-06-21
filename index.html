@@ -582,7 +582,7 @@
 
     <script>
         // Configuration - Replace this URL with your actual Google Apps Script deployment URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyPYfJQI9kFy0QOcbfGJqUng-JdUfEFDaop1PPApMzXQF37vmmqedcpYB-3B4aLqVRIwQ/exec';
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
         
         let currentData = [];
         let selectedRows = new Set();
@@ -892,14 +892,17 @@
             findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">🔄 Loading findings...</td></tr>';
 
             try {
+                console.log('Refreshing findings...');
                 const findingsData = await makeRequest('getFindings');
+                console.log('Received findings data:', findingsData);
+                
                 updateFindingsTable(findingsData);
                 
-                showSuccess('Findings refreshed successfully!');
+                showSuccess(`Findings refreshed successfully! Found ${findingsData.length} records.`);
             } catch (error) {
                 console.error('Error refreshing findings:', error);
                 showError('Failed to refresh findings: ' + error.message);
-                findingsTableBody.innerHTML = '<tr><td colspan="7" class="error">❌ Failed to load findings</td></tr>';
+                findingsTableBody.innerHTML = '<tr><td colspan="7" class="error">❌ Failed to load findings. Try copying some data to findings first.</td></tr>';
             }
         }
 
@@ -907,8 +910,10 @@
             const findingsTableBody = document.getElementById('findingsTableBody');
             const findingsCount = document.getElementById('findingsCount');
             
+            console.log('Updating findings table with data:', data);
+            
             if (!data || data.length === 0) {
-                findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings data available</td></tr>';
+                findingsTableBody.innerHTML = '<tr><td colspan="7" class="loading">📭 No findings data available. Copy some records from the main dashboard first.</td></tr>';
                 findingsCount.textContent = '0 findings';
                 return;
             }
@@ -917,7 +922,7 @@
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
-                const managementRemarksInput = `<textarea class="remarks-input" placeholder="Management remarks..." 
+                const managementRemarksInput = `<textarea class="remarks-input" placeholder="Enter management remarks..." 
                     onchange="updateManagementRemarks(${index}, this.value)" style="min-height: 60px;">${item.managementRemarks || ''}</textarea>`;
                 
                 row.innerHTML = `
@@ -925,7 +930,7 @@
                     <td>${item.customerName || ''}</td>
                     <td>${item.docNo || ''}</td>
                     <td>${formatCurrency(item.balanceDue)}</td>
-                    <td title="${item.staffRemarks || ''}">${truncateText(item.staffRemarks || '', 50)}</td>
+                    <td title="${item.staffRemarks || 'No staff remarks'}">${truncateText(item.staffRemarks || 'No remarks', 50)}</td>
                     <td>${managementRemarksInput}</td>
                     <td>${formatDate(item.dateAdded)}</td>
                 `;
