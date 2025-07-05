@@ -1459,74 +1459,78 @@ function sortTable(tableId, colIndex) {
 </script>
 
 <script>document.addEventListener('DOMContentLoaded', () => {
+  console.log('PDF script loaded');
+  
   const btn = document.getElementById('downloadSummaryPdfBtn');
-  if (!btn) return;
+  if (!btn) {
+    console.log('Button not found');
+    return;
+  }
+  
+  console.log('Button found, adding event listener');
   
   btn.addEventListener('click', () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    console.log('Download button clicked');
     
-    // Professional color scheme - printer friendly
-    const colors = {
-      primary: [52, 73, 94],      // Dark blue-gray
-      secondary: [52, 152, 219],   // Professional blue
-      accent: [46, 204, 113],      // Success green
-      text: [33, 37, 41],          // Dark text
-      lightGray: [248, 249, 250],  // Very light background
-      mediumGray: [233, 236, 239], // Light borders
-      darkGray: [108, 117, 125]    // Secondary text
-    };
-    
-    const margin = 60;
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    let y = margin;
-    
-    // Header section with modern design
-    function drawHeader() {
-      // Top accent line
-      doc.setDrawColor(...colors.secondary);
-      doc.setLineWidth(4);
-      doc.line(margin, y, pageW - margin, y);
-      y += 20;
+    try {
+      const { jsPDF } = window.jspdf;
+      if (!jsPDF) {
+        console.error('jsPDF not found');
+        return;
+      }
       
-      // Company name with modern styling
+      console.log('Creating PDF...');
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      
+      // Professional colors (printer-friendly)
+      const primaryBlue = [52, 73, 94];
+      const accentBlue = [52, 152, 219];
+      const successGreen = [46, 204, 113];
+      const lightGray = [248, 249, 250];
+      const textDark = [33, 37, 41];
+      
+      const margin = 60;
+      const pageW = doc.internal.pageSize.getWidth();
+      let y = margin;
+      
+      // Modern header with accent line
+      doc.setDrawColor(52, 152, 219);
+      doc.setLineWidth(3);
+      doc.line(margin, y, pageW - margin, y);
+      y += 25;
+      
+      // Company title - modern styling
       doc.setFont('helvetica', 'bold')
-         .setFontSize(24)
-         .setTextColor(...colors.primary);
+         .setFontSize(22)
+         .setTextColor(52, 73, 94);
       doc.text('BHAGWATI MOTORS', pageW/2, y, { align: 'center' });
       
-      y += 25;
-      doc.setFontSize(16)
-         .setTextColor(...colors.secondary);
+      y += 20;
+      doc.setFontSize(14)
+         .setTextColor(52, 152, 219);
       doc.text('INDIA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
       
-      y += 30;
+      y += 35;
       
-      // Subtle decorative line
-      doc.setDrawColor(...colors.mediumGray);
+      // Decorative line
+      doc.setDrawColor(233, 236, 239);
       doc.setLineWidth(1);
-      doc.line(margin + 100, y, pageW - margin - 100, y);
-      
+      doc.line(margin + 80, y, pageW - margin - 80, y);
       y += 25;
-    }
-    
-    // Information cards section
-    function drawInfoCards() {
-      const cardHeight = 50;
-      const cardWidth = (pageW - margin * 2 - 20) / 2;
       
-      // Branch info card
-      doc.setFillColor(...colors.lightGray);
-      doc.roundedRect(margin, y, cardWidth, cardHeight, 3, 3, 'F');
+      // Branch and Date in modern cards
+      const cardHeight = 45;
+      const cardWidth = (pageW - margin * 2 - 15) / 2;
       
-      // Branch label
+      // Branch card
+      doc.setFillColor(248, 249, 250);
+      doc.rect(margin, y, cardWidth, cardHeight, 'F');
+      
       doc.setFont('helvetica', 'bold')
-         .setFontSize(10)
-         .setTextColor(...colors.darkGray);
-      doc.text('BRANCH', margin + 15, y + 20);
+         .setFontSize(9)
+         .setTextColor(108, 117, 125);
+      doc.text('BRANCH', margin + 12, y + 18);
       
-      // Branch value
       const raw = window.currentBranch;
       const branch = raw 
         ? (typeof raw === 'string' 
@@ -1535,109 +1539,93 @@ function sortTable(tableId, colIndex) {
         : 'Unknown Branch';
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(14)
-         .setTextColor(...colors.primary);
-      doc.text(branch, margin + 15, y + 38);
+         .setFontSize(12)
+         .setTextColor(52, 73, 94);
+      doc.text(branch, margin + 12, y + 33);
       
-      // Date info card
-      doc.setFillColor(...colors.lightGray);
-      doc.roundedRect(margin + cardWidth + 20, y, cardWidth, cardHeight, 3, 3, 'F');
+      // Date card
+      doc.setFillColor(248, 249, 250);
+      doc.rect(margin + cardWidth + 15, y, cardWidth, cardHeight, 'F');
       
-      // Date label
       doc.setFont('helvetica', 'bold')
-         .setFontSize(10)
-         .setTextColor(...colors.darkGray);
-      doc.text('REPORT DATE', margin + cardWidth + 35, y + 20);
+         .setFontSize(9)
+         .setTextColor(108, 117, 125);
+      doc.text('REPORT DATE', margin + cardWidth + 27, y + 18);
       
-      // Date value
       const now = new Date();
       const dd = String(now.getDate()).padStart(2, '0');
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const yy = now.getFullYear();
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(14)
-         .setTextColor(...colors.primary);
-      doc.text(`${dd}/${mm}/${yy}`, margin + cardWidth + 35, y + 38);
+         .setFontSize(12)
+         .setTextColor(52, 73, 94);
+      doc.text(`${dd}/${mm}/${yy}`, margin + cardWidth + 27, y + 33);
       
-      y += cardHeight + 30;
-    }
-    
-    // Summary statistics section
-    function drawSummaryStats() {
-      // Section title
+      y += cardHeight + 35;
+      
+      // Summary section with visual elements
       doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
-         .setTextColor(...colors.primary);
-      doc.text('SUMMARY STATISTICS', margin, y);
+         .setFontSize(14)
+         .setTextColor(52, 73, 94);
+      doc.text('SUMMARY OVERVIEW', margin, y);
       
       y += 25;
       
-      // Stats container
-      const statsHeight = 80;
-      doc.setFillColor(...colors.lightGray);
-      doc.roundedRect(margin, y, pageW - margin * 2, statsHeight, 5, 5, 'F');
+      // Summary stats box
+      const summaryHeight = 70;
+      doc.setFillColor(248, 249, 250);
+      doc.rect(margin, y, pageW - margin * 2, summaryHeight, 'F');
       
-      // Left side - Total Customers
-      const iconSize = 40;
-      const leftX = margin + 30;
-      
-      // Customer icon (simple circle with number)
-      doc.setFillColor(...colors.secondary);
-      doc.circle(leftX + iconSize/2, y + iconSize/2 + 20, iconSize/2, 'F');
+      // Customer count with icon
+      doc.setFillColor(52, 152, 219);
+      doc.circle(margin + 25, y + 35, 18, 'F');
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
+         .setFontSize(12)
          .setTextColor(255, 255, 255);
-      doc.text('👥', leftX + iconSize/2, y + iconSize/2 + 25, { align: 'center' });
+      doc.text('C', margin + 25, y + 40, { align: 'center' });
       
-      // Customer count
       const totalCust = document.getElementById('totalCustomers').textContent;
       doc.setFont('helvetica', 'bold')
-         .setFontSize(24)
-         .setTextColor(...colors.primary);
-      doc.text(totalCust, leftX + iconSize + 20, y + 35);
+         .setFontSize(20)
+         .setTextColor(52, 73, 94);
+      doc.text(totalCust, margin + 55, y + 32);
       
       doc.setFont('helvetica', 'normal')
-         .setFontSize(12)
-         .setTextColor(...colors.darkGray);
-      doc.text('Total Customers', leftX + iconSize + 20, y + 50);
+         .setFontSize(10)
+         .setTextColor(108, 117, 125);
+      doc.text('Total Customers', margin + 55, y + 45);
       
-      // Right side - Total Balance
-      const rightX = pageW/2 + 50;
-      
-      // Money icon
-      doc.setFillColor(...colors.accent);
-      doc.circle(rightX + iconSize/2, y + iconSize/2 + 20, iconSize/2, 'F');
+      // Balance with icon
+      const rightX = pageW/2 + 40;
+      doc.setFillColor(46, 204, 113);
+      doc.circle(rightX, y + 35, 18, 'F');
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
+         .setFontSize(10)
          .setTextColor(255, 255, 255);
-      doc.text('₹', rightX + iconSize/2, y + iconSize/2 + 25, { align: 'center' });
+      doc.text('Rs', rightX, y + 40, { align: 'center' });
       
-      // Balance amount
       const totalBalRaw = document.getElementById('summaryGrandTotal').textContent;
       const totalBal = totalBalRaw.replace('₹', 'Rs. ');
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(18)
-         .setTextColor(...colors.primary);
-      doc.text(totalBal, rightX + iconSize + 20, y + 35);
+         .setFontSize(16)
+         .setTextColor(52, 73, 94);
+      doc.text(totalBal, rightX + 30, y + 32);
       
       doc.setFont('helvetica', 'normal')
-         .setFontSize(12)
-         .setTextColor(...colors.darkGray);
-      doc.text('Total Outstanding', rightX + iconSize + 20, y + 50);
+         .setFontSize(10)
+         .setTextColor(108, 117, 125);
+      doc.text('Total Outstanding', rightX + 30, y + 45);
       
-      y += statsHeight + 40;
-    }
-    
-    // Enhanced table section
-    function drawTable() {
-      // Section title
+      y += summaryHeight + 35;
+      
+      // Table section
       doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
-         .setTextColor(...colors.primary);
+         .setFontSize(14)
+         .setTextColor(52, 73, 94);
       doc.text('CUSTOMER DETAILS', margin, y);
       
       y += 20;
@@ -1653,124 +1641,80 @@ function sortTable(tableId, colIndex) {
         r.cells[1].innerText.trim().replace('₹', 'Rs. ')
       ]);
       
-      // Enhanced table styling
+      console.log('Creating table with', body.length, 'rows');
+      
+      // Enhanced table
       doc.autoTable({
         startY: y + 10,
         margin: { left: margin, right: margin },
         head: [['S.No.', 'Customer Name', 'Total Due']],
         body: body,
-        theme: 'plain',
+        theme: 'grid',
         
-        // Header styling
         headStyles: {
-          fillColor: colors.secondary,
+          fillColor: [52, 152, 219],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: 12,
-          cellPadding: 12,
-          halign: 'center'
-        },
-        
-        // Body styling
-        bodyStyles: {
-          textColor: colors.text,
-          font: 'helvetica',
-          fontSize: 10,
+          fontSize: 11,
           cellPadding: 10
         },
         
-        // Alternating row colors
-        alternateRowStyles: {
-          fillColor: colors.lightGray
-        },
-        
-        // Column specific styling
-        columnStyles: {
-          0: { 
-            cellWidth: 60, 
-            halign: 'center',
-            fontStyle: 'bold',
-            textColor: colors.secondary
-          },
-          1: { 
-            cellWidth: 300, 
-            halign: 'left',
-            fontStyle: 'normal'
-          },
-          2: { 
-            cellWidth: 120, 
-            halign: 'right',
-            fontStyle: 'bold',
-            textColor: colors.accent
-          }
-        },
-        
-        // Table styling
-        styles: {
-          lineWidth: 0.5,
-          lineColor: colors.mediumGray,
-          overflow: 'linebreak',
+        bodyStyles: {
+          textColor: [33, 37, 41],
+          font: 'helvetica',
+          fontSize: 10,
           cellPadding: 8
         },
         
-        // Advanced options
-        pageBreak: 'auto',
-        showHead: 'everyPage',
+        alternateRowStyles: {
+          fillColor: [248, 249, 250]
+        },
         
-        // Custom row styling
-        didParseCell: function(data) {
-          // Highlight high-value customers
-          if (data.column.index === 2 && data.section === 'body') {
-            const amount = parseFloat(data.cell.text[0].replace(/[Rs.,\s]/g, ''));
-            if (amount > 10000) {
-              data.cell.styles.textColor = [220, 53, 69]; // Red for high amounts
-              data.cell.styles.fontStyle = 'bold';
-            }
-          }
-        }
+        columnStyles: {
+          0: { cellWidth: 60, halign: 'center' },
+          1: { cellWidth: 300, halign: 'left' },
+          2: { cellWidth: 120, halign: 'right' }
+        },
+        
+        styles: {
+          lineWidth: 0.5,
+          lineColor: [233, 236, 239],
+          overflow: 'linebreak'
+        },
+        
+        pageBreak: 'auto',
+        showHead: 'everyPage'
       });
-    }
-    
-    // Footer with professional touch
-    function drawFooter() {
-      const footerY = pageH - 50;
       
-      // Footer line
-      doc.setDrawColor(...colors.mediumGray);
+      console.log('Table created successfully');
+      
+      // Modern footer
+      const footerY = doc.internal.pageSize.getHeight() - 40;
+      doc.setDrawColor(233, 236, 239);
       doc.setLineWidth(1);
       doc.line(margin, footerY, pageW - margin, footerY);
       
-      // Footer text
       doc.setFont('helvetica', 'normal')
-         .setFontSize(9)
-         .setTextColor(...colors.darkGray);
+         .setFontSize(8)
+         .setTextColor(108, 117, 125);
       
       const timestamp = new Date().toLocaleString();
-      doc.text(`Generated on ${timestamp}`, margin, footerY + 20);
-      doc.text('Confidential Business Report', pageW - margin, footerY + 20, { align: 'right' });
+      doc.text(`Generated: ${timestamp}`, margin, footerY + 15);
+      doc.text('Confidential Report', pageW - margin, footerY + 15, { align: 'right' });
+      
+      // Save with professional filename
+      const safeBranch = branch.replace(/\s+/g, '_');
+      const dateStr = `${yy}${mm}${dd}`;
+      const filename = `BhagwatiMotors_${safeBranch}_Summary_${dateStr}.pdf`;
+      
+      console.log('Saving PDF:', filename);
+      doc.save(filename);
+      console.log('PDF saved successfully');
+      
+    } catch (error) {
+      console.error('Error creating PDF:', error);
+      alert('Error creating PDF: ' + error.message);
     }
-    
-    // Build the PDF
-    drawHeader();
-    drawInfoCards();
-    drawSummaryStats();
-    drawTable();
-    drawFooter();
-    
-    // Save with enhanced filename
-    const raw = window.currentBranch;
-    const branch = raw 
-      ? (typeof raw === 'string' 
-          ? raw 
-          : (raw.textContent || raw.innerText || 'Unknown'))
-        : 'Unknown';
-    
-    const safeBranch = branch.replace(/\s+/g, '_');
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
-    const filename = `BhagwatiMotors_${safeBranch}_CustomerSummary_${dateStr}.pdf`;
-    
-    doc.save(filename);
   });
 });</script>
 
