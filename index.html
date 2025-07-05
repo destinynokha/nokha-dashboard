@@ -987,8 +987,8 @@
                 const remarksInput = `<input type="text" placeholder="Add staff remarks..." 
                     onchange="updateRowRemarks(${index}, this.value)" style="width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">`;
 
-                const postingDate = formatDate(item.data[4]);
-                const dueDate = formatDate(item.data[5]);
+ const postingDate = item.data[4];
+ const dueDate     = item.data[5];
                 
                 const rowDataForCopy = [
                     item.data[0], item.data[1], item.data[2], item.data[3],
