@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bhagwati Motors - Multi-Branch Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.9.3/dist/html2pdf.bundle.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -598,6 +600,9 @@
                             <h4 style="margin: 0; color: #27ae60;">📤 Copy to Findings</h4>
                             <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Select rows and add remarks, then copy to findings for management review</p>
                         </div>
+                        <button id="downloadPdfBtn" class="btn btn-primary">
+  ⬇️ Download Report PDF
+</button>
                         <button class="btn btn-success" onclick="copySelectedToFindings()">📤 Copy Selected to Findings</button>
                     </div>
                 </div>
