@@ -1107,25 +1107,48 @@
         }
 
         async function refreshSummary() {
-            if (!currentBranch) {
-                showError('Please login to a branch first');
-                return;
-            }
-            
-            const tableBody = document.getElementById('summaryTableBody');
-            tableBody.innerHTML = '<tr><td colspan="2" class="loading">🔄 Loading summary data...</td></tr>';
+  if (!currentBranch) {
+    showError('Please login to a branch first');
+    return;
+  }
+  
+  const tableBody = document.getElementById('summaryTableBody');
+  tableBody.innerHTML = '<tr><td colspan="2" class="loading">🔄 Loading summary data...</td></tr>';
 
-            try {
-                const summaryData = await makeRequest('getTotalDebtors');
-                updateSummaryTable(summaryData);
-                
-                showSuccess('Summary refreshed successfully!');
-            } catch (error) {
-                console.error('Error refreshing summary:', error);
-                showError('Failed to refresh summary: ' + error.message);
-                tableBody.innerHTML = '<tr><td colspan="2" class="error">❌ Failed to load summary data</td></tr>';
-            }
-        }
+  try {
+    // Fetch all rows (no customer/date filter)
+    const params = {
+      fromDate:     '',
+      toDate:       '',
+      customerName: '',
+      dueDays:      document.getElementById('dueDays').value
+    };
+    const dashboardData = await makeRequest('getDashboardData', params);
+
+    // Group & sum by customer name (data[1]) and amount (data[6])
+    const totalsByCustomer = {};
+    dashboardData.data.forEach(item => {
+      const cust = item.data[1];
+      const amt  = parseFloat(item.data[6]) || 0;
+      totalsByCustomer[cust] = (totalsByCustomer[cust] || 0) + amt;
+    });
+
+    // Build the object shape updateSummaryTable expects
+    const summaryData = {
+      customers: Object.entries(totalsByCustomer).map(([customer, total]) => ({ customer, total })),
+      grandTotal: Object.values(totalsByCustomer).reduce((sum, t) => sum + t, 0)
+    };
+
+    // Render it
+    updateSummaryTable(summaryData);
+    showSuccess('Summary refreshed successfully!');
+  } catch (error) {
+    console.error('Error refreshing summary:', error);
+    showError('Failed to refresh summary: ' + error.message);
+    tableBody.innerHTML = '<tr><td colspan="2" class="error">❌ Failed to load summary data</td></tr>';
+  }
+}
+
 
         function updateSummaryTable(data) {
             const tableBody = document.getElementById('summaryTableBody');
