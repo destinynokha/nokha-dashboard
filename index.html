@@ -603,18 +603,18 @@
                 </div>
 
                 <div class="table-container">
-                    <table>
+                    <table id="dashboardTable">
                         <thead>
                             <tr>
-                                <th>Select</th>
-                                <th>Customer Code <button onclick="sortTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Customer Name <button onclick="sortTable(2)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Type <button onclick="sortTable(3)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Doc. No. <button onclick="sortTable(4)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Posting Date <button onclick="sortTable(5)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Due Date <button onclick="sortTable(6)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Balance Due <button onclick="sortTable(7)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Staff Remarks</th>
+ <th>Select</th>
+        <th>Customer Code <button onclick="sortTable('dashboardTable', 1)">↕️</button></th>
+        <th>Customer Name <button onclick="sortTable('dashboardTable', 2)">↕️</button></th>
+        <th>Type          <button onclick="sortTable('dashboardTable', 3)">↕️</button></th>
+        <th>Doc. No.      <button onclick="sortTable('dashboardTable', 4)">↕️</button></th>
+        <th>Posting Date  <button onclick="sortTable('dashboardTable', 5)">↕️</button></th>
+        <th>Due Date      <button onclick="sortTable('dashboardTable', 6)">↕️</button></th>
+        <th>Balance Due   <button onclick="sortTable('dashboardTable', 7)">↕️</button></th>
+        <th>Staff Remarks</th>
                             </tr>
                         </thead>
                         <tbody id="dashboardTableBody">
@@ -648,11 +648,11 @@
                 </div>
 
                 <div class="table-container">
-                    <table>
+                    <table id="summaryTable">
                         <thead>
                             <tr>
-                                <th>Customer Name <button onclick="sortSummaryTable(0)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
-                                <th>Total Due Amount <button onclick="sortSummaryTable(1)" style="background:none;border:none;color:white;cursor:pointer;">↕️</button></th>
+                                <th>Customer <button onclick="sortTable('summaryTable', 0)">↕️</button></th>
+                                <th>Total Due <button onclick="sortTable('summaryTable', 1)">↕️</button></th>
                             </tr>
                         </thead>
                         <tbody id="summaryTableBody">
@@ -1389,5 +1389,41 @@
             }
         });
     </script>
+    <script>
+// Generic HTML table sorter: call sortTable(tableId, colIndex)
+function sortTable(tableId, colIndex) {
+  const table = document.getElementById(tableId);
+  let switching = true, dir = "asc";
+  while (switching) {
+    switching = false;
+    const rows = table.rows;
+    for (let i = 1; i < rows.length - 1; i++) {
+      let shouldSwitch = false;
+      const xcell = rows[i].getElementsByTagName("TD")[colIndex];
+      const ycell = rows[i+1].getElementsByTagName("TD")[colIndex];
+      let x = xcell.innerText.trim(), y = ycell.innerText.trim();
+      // Try numeric compare if possible:
+      const xn = parseFloat(x.replace(/[^0-9.-]+/g,""));
+      const yn = parseFloat(y.replace(/[^0-9.-]+/g,""));
+      if (!isNaN(xn) && !isNaN(yn)) {
+        x = xn; y = yn;
+      }
+      if ((dir === "asc"  && x > y) ||
+          (dir === "desc" && x < y)) {
+        shouldSwitch = true;
+        break;
+      }
+    }
+    if (shouldSwitch) {
+      rows[i].parentNode.insertBefore(rows[i+1], rows[i]);
+      switching = true;
+    } else if (dir === "asc") {
+      dir = "desc";
+      switching = true;
+    }
+  }
+}
+</script>
+
 </body>
 </html>
