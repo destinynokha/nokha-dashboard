@@ -1450,109 +1450,83 @@ function sortTable(tableId, colIndex) {
 </script>
 <script>
 document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-  // 1) Prepare container
+  // 1) Container with embedded CSS for PDF
   const container = document.createElement('div');
   container.style.padding = '40px';
   container.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
   container.style.color = '#333';
 
-  // 2) Header
-  const firmName = "BHAGWATI MOTORS INDIA PRIVATE LIMITED";
-  const h1 = document.createElement('h1');
-  h1.innerText = firmName;
-  h1.style.textAlign = 'center';
-  h1.style.fontSize = '24px';
-  h1.style.marginBottom = '20px';
-  container.appendChild(h1);
+  // embed PDF‐only styles
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    table { width:100%; border-collapse: collapse; margin-top: 20px; }
+    thead { display: table-header-group; } /* repeat header */
+    th, td { border: 1px solid #ddd; padding: 8px; page-break-inside: avoid; }
+    th { background: #f2f2f2; color: #000; font-weight: bold; text-align: left; }
+    td { color: #333; }
+    div { page-break-inside: avoid; } /* avoid splitting key blocks */
+  `;
+  container.appendChild(styleEl);
+
+  // 2) Firm name
+  const firm = document.createElement('h1');
+  firm.innerText = "BHAGWATI MOTORS INDIA PRIVATE LIMITED";
+  firm.style.textAlign = 'center';
+  firm.style.marginBottom = '20px';
+  container.appendChild(firm);
 
   // 3) Customer & period
-  let from = document.getElementById('fromDate').value.trim();
+  let from = document.getElementById('fromDate').value.trim() || '01/04/2025';
   let to   = document.getElementById('toDate').value.trim();
-  if (!from) from = '01/04/2025';
   if (!to) {
-    const now = new Date();
-    const dd  = String(now.getDate()).padStart(2,'0');
-    const mm  = String(now.getMonth()+1).padStart(2,'0');
-    const yyyy= now.getFullYear();
-    to = `${dd}/${mm}/${yyyy}`;
+    const d = new Date(), dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0'), yy = d.getFullYear();
+    to = `${dd}/${mm}/${yy}`;
   }
-
-  const infoRow = document.createElement('div');
-  infoRow.style.display = 'flex';
-  infoRow.style.justifyContent = 'space-between';
-  infoRow.style.marginBottom = '10px';
-  infoRow.innerHTML = `
-    <div><strong>Customer:</strong> ${document.getElementById('customerSelect').value || 'All'}</div>
-    <div><strong>Period:</strong> ${from} – ${to}</div>
-  `;
-  container.appendChild(infoRow);
+  const cust = document.getElementById('customerSelect').value || 'All';
+  const info = document.createElement('div');
+  info.style.display = 'flex';
+  info.style.justifyContent = 'space-between';
+  info.innerHTML = `<div><strong>Customer:</strong> ${cust}</div>
+                    <div><strong>Period:</strong> ${from} – ${to}</div>`;
+  container.appendChild(info);
 
   // 4) Totals row
   const overdue = document.getElementById('overdueTotal').textContent;
   const total   = document.getElementById('grandTotal').textContent;
-  const totalsRow = document.createElement('div');
-  totalsRow.style.display = 'flex';
-  totalsRow.style.justifyContent = 'space-between';
-  totalsRow.style.marginBottom = '20px';
-  totalsRow.innerHTML = `
+  const totals = document.createElement('div');
+  totals.style.display = 'flex';
+  totals.style.justifyContent = 'space-between';
+  totals.style.marginTop = '10px';
+  totals.innerHTML = `
     <div style="font-size:18px; color:#c0392b;"><strong>Overdue:</strong> ${overdue}</div>
     <div style="font-size:18px; color:#27ae60;"><strong>Total:</strong> ${total}</div>
   `;
-  container.appendChild(totalsRow);
+  container.appendChild(totals);
 
-  // 5) Build stripped-down table
+  // 5) Build the data table
   const orig = document.getElementById('dashboardTable');
   const tbl  = document.createElement('table');
-  tbl.style.width = '100%';
-  tbl.style.borderCollapse = 'collapse';
-  // headers we want:
-  const headers = ['Type','Doc. No.','Posting Date','Balance Due'];
+
+  // headers
   const thead = tbl.createTHead();
-  const hr = thead.insertRow();
-  headers.forEach(txt => {
+  const hr    = thead.insertRow();
+  ['Type','Doc. No.','Posting Date','Balance Due'].forEach(txt => {
     const th = document.createElement('th');
     th.innerText = txt;
-    th.style.background = '#f2f2f2';
-    th.style.padding = '8px';
-    th.style.border = '1px solid #ddd';
-    th.style.fontWeight = 'bold';
-    th.style.textAlign = 'left';
     hr.appendChild(th);
   });
+
+  // body
   const tbody = tbl.createTBody();
-  // pull from original data rows
   Array.from(orig.tBodies[0].rows).forEach(row => {
- 
+    if (row.cells.length < 8) return; // skip placeholders
+    const type = row.cells[3].innerText.trim();   // Type at idx 3
+    const doc  = row.cells[4].innerText.trim();   // Doc. No. idx 4
+    const pdt  = row.cells[5].innerText.trim();   // Posting Date idx 5
+    const bal  = row.cells[7].innerText.trim();   // Balance Due idx 7
+    const r = tbo
 
-    // skip loading/no-data rows
-    if (row.cells.length < 7) return;
-    const type = row.cells[2].innerText.trim();
-    const doc  = row.cells[3].innerText.trim();
-    const pdt  = row.cells[5].innerText.trim();
-    const bal  = row.cells[7].innerText.trim();
-    const r = tbody.insertRow();
-    [type, doc, pdt, bal].forEach((txt,i) => {
-      const c = r.insertCell();
-      c.innerText = txt;
-      c.style.padding = '6px';
-      c.style.border = '1px solid #ddd';
-    });
-  });
-  container.appendChild(tbl);
-
-  // 6) Generate PDF
-  html2pdf()
-    .set({
-      margin:       0.5,
-      filename:     `${firmName.replace(/\s+/g,'_')}_Report.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-    })
-    .from(container)
-    .save();
-});
-</script>
 
 
 
