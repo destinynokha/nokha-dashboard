@@ -746,16 +746,19 @@
             const today = new Date().toISOString().split('T')[0];
             // call this once on page-load or right before refreshDashboard()
 (function setToday() {
-  const now = new Date();
-  const dd  = String(now.getDate()).padStart(2, '0');
-  const mm  = String(now.getMonth() + 1).padStart(2, '0');
-  const yyyy = now.getFullYear();
-  const todayStr = `${dd}/${mm}/${yyyy}`;   // e.g. "05/07/2025"
-  
-  // assuming you’ve switched to <input type="text" placeholder="dd/mm/yyyy">
-  document.getElementById('toDate').value   = todayStr;
-  document.getElementById('fromDate').value = todayStr; // if you want both defaulted
+  const now   = new Date();
+  const dd    = String(now.getDate()).padStart(2, '0');
+  const mm    = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy  = now.getFullYear();
+  const todayStr = `${dd}/${mm}/${yyyy}`;  // "05/07/2025"
+
+  // Only set the To Date:
+  document.getElementById('toDate').value = todayStr;
+
+  // Leave the From Date empty so it doesn’t filter-out everything:
+  document.getElementById('fromDate').value = "";
 })();
+
 
         }
 
