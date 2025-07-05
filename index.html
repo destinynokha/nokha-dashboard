@@ -937,43 +937,40 @@
             }
         }
 
-        async function refreshDashboard() {
-            if (!currentBranch) {
-                showError('Please login to a branch first');
-                return;
-            }
-            
-            const tableBody = document.getElementById('dashboardTableBody');
-            tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading dashboard data...</td></tr>';
-            
-            try {
-                 // parse HTML date (YYYY-MM-DD) into DD/MM/YYYY
-                   function parseDMYFromISO(str) {
-                     const [yyyy, mm, dd] = str.split('-');
-                     return `${dd}/${mm}/${yyyy}`;
-                   }
-                   const rawFrom = document.getElementById('fromDate').value;
-                   const rawTo   = document.getElementById('toDate').value;
-                   const params = {
-                       fromDate:      parseDMYFromISO(rawFrom),
-                       toDate:        parseDMYFromISO(rawTo),
-                       customerName:  document.getElementById('customerSelect').value,
-                       dueDays:       document.getElementById('dueDays').value
-                };
+       async function refreshDashboard() {
+    if (!currentBranch) {
+        showError('Please login to a branch first');
+        return;
+    }
+    
+    const tableBody = document.getElementById('dashboardTableBody');
+    tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading dashboard data...</td></tr>';
+    
+    try {
+        // grab the raw dd/mm/yyyy strings directly
+        const rawFrom = document.getElementById('fromDate').value; // e.g. "05/07/2025"
+        const rawTo   = document.getElementById('toDate').value;   // e.g. "05/07/2025"
+        
+        const params = {
+            fromDate:     rawFrom,
+            toDate:       rawTo,
+            customerName: document.getElementById('customerSelect').value,
+            dueDays:      document.getElementById('dueDays').value
+        };
 
-                 const dashboardData = await makeRequest('getDashboardData', params);
-  // Filter based on POSTING DATE (column index 4)
-                      
-                updateDashboardTable(dashboardData);
-                updateDashboardStats(dashboardData.totals, dashboardData.data.length);
+        const dashboardData = await makeRequest('getDashboardData', params);
+        
+        updateDashboardTable(dashboardData);
+        updateDashboardStats(dashboardData.totals, dashboardData.data.length);
 
-                showSuccess('Dashboard refreshed successfully!');
-            } catch (error) {
-                console.error('Error refreshing dashboard:', error);
-                showError('Failed to refresh dashboard: ' + error.message);
-                tableBody.innerHTML = '<tr><td colspan="9" class="error">❌ Failed to load data</td></tr>';
-            }
-        }
+        showSuccess('Dashboard refreshed successfully!');
+    } catch (error) {
+        console.error('Error refreshing dashboard:', error);
+        showError('Failed to refresh dashboard: ' + error.message);
+        tableBody.innerHTML = '<tr><td colspan="9" class="error">❌ Failed to load data</td></tr>';
+    }
+}
+
 
         function updateDashboardTable(data) {
             const tableBody = document.getElementById('dashboardTableBody');
