@@ -1471,18 +1471,6 @@ function sortTable(tableId, colIndex) {
       const pageW = doc.internal.pageSize.getWidth();
       let y = margin;
       
-      // Helper function to convert date format from mm/dd/yyyy to dd/mm/yyyy
-      function convertDateFormat(dateStr) {
-        if (!dateStr) return dateStr;
-        const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-        const match = mmddyyyy.exec(dateStr.trim());
-        if (match) {
-          const [, mm, dd, yyyy] = match;
-          return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yyyy}`;
-        }
-        return dateStr; // Return as-is if not matching expected format
-      }
-      
       // Company name - single line
       doc.setFont('helvetica', 'bold')
          .setFontSize(18)
@@ -1536,8 +1524,7 @@ function sortTable(tableId, colIndex) {
       
       const body = rows.map((r, idx) => [
         String(idx + 1),
-        // Convert any dates that might appear in customer data
-        convertDateFormat(r.cells[0].innerText.trim()),
+        r.cells[0].innerText.trim(),
         r.cells[1].innerText.trim().replace('₹', 'Rs. ')
       ]);
       
