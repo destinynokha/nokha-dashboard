@@ -1521,7 +1521,10 @@ document.getElementById('downloadPdfBtn').addEventListener('click', () => {
   });
   const tbody = tbl.createTBody();
   // pull from original data rows
-  orig.tBodies[0].rows.forEach(row => {
+  Array.from(orig.tBodies[0].rows).forEach(row => {
+  // …
+});
+
     // skip loading/no-data rows
     if (row.cells.length < 7) return;
     const type = row.cells[2].innerText.trim();
