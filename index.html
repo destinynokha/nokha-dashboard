@@ -1402,28 +1402,23 @@ function sortTable(tableId, colIndex) {
       const xcell = rows[i].getElementsByTagName("TD")[colIndex];
       const ycell = rows[i+1].getElementsByTagName("TD")[colIndex];
       let x = xcell.innerText.trim(), y = ycell.innerText.trim();
-      // Try numeric compare if possible:
       const xn = parseFloat(x.replace(/[^0-9.-]+/g,""));
       const yn = parseFloat(y.replace(/[^0-9.-]+/g,""));
-      if (!isNaN(xn) && !isNaN(yn)) {
-        x = xn; y = yn;
-      }
-      if ((dir === "asc"  && x > y) ||
-          (dir === "desc" && x < y)) {
-        shouldSwitch = true;
-        break;
+      if (!isNaN(xn) && !isNaN(yn)) { x = xn; y = yn; }
+      if ((dir==="asc"  && x>y) || (dir==="desc" && x<y)) {
+        shouldSwitch = true; break;
       }
     }
     if (shouldSwitch) {
       rows[i].parentNode.insertBefore(rows[i+1], rows[i]);
       switching = true;
-    } else if (dir === "asc") {
-      dir = "desc";
-      switching = true;
+    } else if (dir==="asc") {
+      dir = "desc"; switching = true;
     }
   }
 }
 </script>
+
 
 </body>
 </html>
