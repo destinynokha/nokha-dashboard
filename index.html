@@ -704,6 +704,11 @@
     </div>
 
    <script src="config.js"></script>
+    <script>
+    if (typeof BRANCH_CONFIG === 'undefined') {
+      alert("⚠️ BRANCH_CONFIG not loaded. Please create config.js and include credentials.");
+    }
+  </script>
 <script>
   // Now you can access BRANCH_CONFIG securely
   console.log(BRANCH_CONFIG.nokha.password); // Will print decoded password
