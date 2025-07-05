@@ -1620,20 +1620,6 @@ function sortTable(tableId, colIndex) {
       doc.text(`Customer: ${customer}`, pageW/2, y, { align: 'center' });
       y += 30;
       
-      // Helper function to convert date format from mm/dd/yyyy to dd/mm/yyyy
-      function convertDateFormat(dateStr) {
-        if (!dateStr) return dateStr;
-        const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-        const match = mmddyyyy.exec(dateStr.trim());
-        if (match) {
-          const [, mm, dd, yyyy] = match;
-          const converted = `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yyyy}`;
-          console.log(`Converting date: ${dateStr} → ${converted}`);
-          return converted;
-        }
-        return dateStr; // Return as-is if not matching expected format
-      }
-      
       // Get data with fallbacks
       let fromDate = '01/04/2025';
       let toDate = 'N/A';
@@ -1642,20 +1628,19 @@ function sortTable(tableId, colIndex) {
       
       const fromElement = document.getElementById('fromDate');
       if (fromElement && fromElement.value) {
-        fromDate = convertDateFormat(fromElement.value.trim());
+        fromDate = fromElement.value.trim();
       }
       
       const toElement = document.getElementById('toDate');
       if (toElement && toElement.value) {
-        toDate = convertDateFormat(toElement.value.trim());
+        toDate = toElement.value.trim();
       } else {
         // Generate today's date in dd/mm/yyyy format
         const d = new Date();
-        const day = String(d.getDate()).padStart(2, '0');      // Day (06)
-        const month = String(d.getMonth() + 1).padStart(2, '0'); // Month (07)  
-        const year = d.getFullYear();                          // Year (2025)
-        toDate = `${day}/${month}/${year}`;                    // Result: 06/07/2025
-        console.log(`Generated today's date: ${toDate}`);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        toDate = `${day}/${month}/${year}`;
       }
       
       const overdueElement = document.getElementById('overdueTotal');
@@ -1693,7 +1678,7 @@ function sortTable(tableId, colIndex) {
         
         tableData = rows.map((r, i) => [
           String(i + 1),
-          convertDateFormat(r.cells[5] ? r.cells[5].innerText.trim() : ''),  // Convert Date from mm/dd/yyyy to dd/mm/yyyy
+          r.cells[5] ? r.cells[5].innerText.trim() : '',                     // Date - no conversion
           r.cells[3] ? r.cells[3].innerText.trim() : '',                     // Document Type
           r.cells[4] ? r.cells[4].innerText.trim() : '',                     // Document No.
           r.cells[7] ? r.cells[7].innerText.trim().replace('₹', 'Rs. ') : 'Rs. 0' // Amount Due
