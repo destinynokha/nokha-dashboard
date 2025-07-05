@@ -1459,111 +1459,6 @@ function sortTable(tableId, colIndex) {
 </script>
 
 
-<script>
-document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',  // ← changed to portrait
-    unit: 'pt',
-    format: 'a4'
-  });
-
-  // 1" margins = 72pt
-  const margin    = 72;
-  const pageWidth = doc.internal.pageSize.getWidth();  // ≈595pt in portrait
-  let   cursorY   = margin;
-
-  // — Title —
-  doc.setFont('helvetica','bold').setFontSize(18);
-  doc.text(
-    'BHAGWATI MOTORS INDIA PRIVATE LIMITED',
-    pageWidth/2, cursorY,
-    { align: 'center' }
-  );
-
-  // — Customer & Period —
-  cursorY += 30;
-  doc.setFont('helvetica','normal').setFontSize(12);
-
-  let from = document.getElementById('fromDate').value.trim() || '01/04/2025';
-  let to   = document.getElementById('toDate').value.trim();
-  if (!to) {
-    const d = new Date(),
-          dd=String(d.getDate()).padStart(2,'0'),
-          mm=String(d.getMonth()+1).padStart(2,'0'),
-          yy=d.getFullYear();
-    to = `${dd}/${mm}/${yy}`;
-  }
-  const cust = document.getElementById('customerSelect').value || 'All Customers';
-  doc.text(`Customer: ${cust}`, margin, cursorY);
-  doc.text(`Period: ${from} – ${to}`, pageWidth - margin, cursorY, { align: 'right' });
-
-  // — Totals —
-  cursorY += 20;
-  const overdueRaw = document.getElementById('overdueTotal').textContent.replace('₹','Rs. ');
-  const totalRaw   = document.getElementById('grandTotal').textContent  .replace('₹','Rs. ');
-  doc.setFont('helvetica','bold').setTextColor('#c0392b')
-     .text(`Overdue: ${overdueRaw}`, margin, cursorY);
-  doc.setTextColor('#27ae60')
-     .text(`Total: ${totalRaw}`, pageWidth - margin, cursorY, { align: 'right' });
-
-  // — Table Data —
-  const origRows = Array.from(
-    document.getElementById('dashboardTable').tBodies[0].rows
-  ).filter(r => r.cells.length >= 8);
-
-  const body = origRows.map((r,i) => [
-    i+1,
-    r.cells[5].innerText.trim(),               // Date
-    r.cells[3].innerText.trim(),               // Document Type
-    r.cells[4].innerText.trim(),               // Document No.
-    r.cells[7].innerText.trim().replace('₹','Rs. ') // Amount Due
-  ]);
-
-  // — Compute scaled widths for portrait A4 —
-  const origWidths = [40, 80, 100, 80, 120];
-  const totalOrig  = origWidths.reduce((a,b)=>a+b, 0);
-  const availWidth = pageWidth - margin*2;
-  const scale      = availWidth / totalOrig;
-  const scaledW    = origWidths.map(w => w * scale);
-
-  // — AutoTable —
-  doc.autoTable({
-    startY: cursorY + 30,
-    margin: { left: margin, right: margin },
-    head: [['S.No','Date','Document Type','Document No.','Amount Due']],
-    body: body,
-    theme: 'grid',
-    headStyles: {
-      fillColor: [230,230,230],
-      textColor: 0,
-      fontStyle: 'bold'
-    },
-    bodyStyles: {
-      textColor: 0,
-      font: 'helvetica',
-      fontSize: 10
-    },
-    alternateRowStyles: { fillColor: [245,245,245] },
-    columnStyles: {
-      0: { cellWidth: scaledW[0], halign:'center' },
-      1: { cellWidth: scaledW[1], halign:'left'   },
-      2: { cellWidth: scaledW[2], halign:'left'   },
-      3: { cellWidth: scaledW[3], halign:'left'   },
-      4: { cellWidth: scaledW[4], halign:'right'  }
-    },
-    styles: { cellPadding: 6, overflow: 'linebreak' },
-    pageBreak: 'auto',
-    showHead: 'everyPage'
-  });
-
-  // — Save PDF —
-  const filename = `${cust.replace(/\s+/g,'_')}_Report_${Date.now()}.pdf`;
-  doc.save(filename);
-});
-</script>
-
-
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('downloadSummaryPdfBtn');
   if (!btn) return;
@@ -1624,7 +1519,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Branch info card
       doc.setFillColor(...colors.lightGray);
-      doc.roundedRect(margin, y, cardWidth, cardHeight, 3, 3, 'F');
+      doc.rect(margin, y, cardWidth, cardHeight, 'F');
       
       // Branch label
       doc.setFont('helvetica', 'bold')
@@ -1647,7 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Date info card
       doc.setFillColor(...colors.lightGray);
-      doc.roundedRect(margin + cardWidth + 20, y, cardWidth, cardHeight, 3, 3, 'F');
+      doc.rect(margin + cardWidth + 20, y, cardWidth, cardHeight, 'F');
       
       // Date label
       doc.setFont('helvetica', 'bold')
@@ -1682,20 +1577,20 @@ document.addEventListener('DOMContentLoaded', () => {
       // Stats container
       const statsHeight = 80;
       doc.setFillColor(...colors.lightGray);
-      doc.roundedRect(margin, y, pageW - margin * 2, statsHeight, 5, 5, 'F');
+      doc.rect(margin, y, pageW - margin * 2, statsHeight, 'F');
       
       // Left side - Total Customers
       const iconSize = 40;
       const leftX = margin + 30;
       
-      // Customer icon (simple circle with number)
+      // Customer icon (simple circle with text)
       doc.setFillColor(...colors.secondary);
       doc.circle(leftX + iconSize/2, y + iconSize/2 + 20, iconSize/2, 'F');
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
+         .setFontSize(14)
          .setTextColor(255, 255, 255);
-      doc.text('👥', leftX + iconSize/2, y + iconSize/2 + 25, { align: 'center' });
+      doc.text('C', leftX + iconSize/2, y + iconSize/2 + 25, { align: 'center' });
       
       // Customer count
       const totalCust = document.getElementById('totalCustomers').textContent;
@@ -1717,9 +1612,9 @@ document.addEventListener('DOMContentLoaded', () => {
       doc.circle(rightX + iconSize/2, y + iconSize/2 + 20, iconSize/2, 'F');
       
       doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
+         .setFontSize(14)
          .setTextColor(255, 255, 255);
-      doc.text('₹', rightX + iconSize/2, y + iconSize/2 + 25, { align: 'center' });
+      doc.text('Rs', rightX + iconSize/2, y + iconSize/2 + 25, { align: 'center' });
       
       // Balance amount
       const totalBalRaw = document.getElementById('summaryGrandTotal').textContent;
@@ -1794,20 +1689,15 @@ document.addEventListener('DOMContentLoaded', () => {
         columnStyles: {
           0: { 
             cellWidth: 60, 
-            halign: 'center',
-            fontStyle: 'bold',
-            textColor: colors.secondary
+            halign: 'center'
           },
           1: { 
             cellWidth: 300, 
-            halign: 'left',
-            fontStyle: 'normal'
+            halign: 'left'
           },
           2: { 
             cellWidth: 120, 
-            halign: 'right',
-            fontStyle: 'bold',
-            textColor: colors.accent
+            halign: 'right'
           }
         },
         
@@ -1821,19 +1711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Advanced options
         pageBreak: 'auto',
-        showHead: 'everyPage',
-        
-        // Custom row styling
-        didParseCell: function(data) {
-          // Highlight high-value customers
-          if (data.column.index === 2 && data.section === 'body') {
-            const amount = parseFloat(data.cell.text[0].replace(/[Rs.,\s]/g, ''));
-            if (amount > 10000) {
-              data.cell.styles.textColor = [220, 53, 69]; // Red for high amounts
-              data.cell.styles.fontStyle = 'bold';
-            }
-          }
-        }
+        showHead: 'everyPage'
       });
     }
     
@@ -1879,7 +1757,6 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.save(filename);
   });
 });
-
 
 
 
