@@ -8,6 +8,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
+    
+
 
     <style>
         * {
@@ -1564,74 +1566,85 @@ document.getElementById('downloadPdfBtn').addEventListener('click', () => {
 
 
 <script>
-document.getElementById('downloadSummaryPdfBtn').addEventListener('click', () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('downloadSummaryPdfBtn');
+  console.log('Download button:', btn);
+  console.log('jsPDF available:', typeof window.jspdf !== 'undefined');
 
-  const margin = 72;  // 1"
-  const pageW  = doc.internal.pageSize.getWidth();
-  let   y      = margin;
+  if (!btn || typeof window.jspdf === 'undefined') return;
 
-  // Title
-  doc.setFont('helvetica','bold').setFontSize(18);
-  doc.text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align:'center' });
+  btn.addEventListener('click', () => {
+    console.log('Download PDF clicked');
 
-  // Branch & Date
-  y += 30;
-  doc.setFont('helvetica','normal').setFontSize(12);
-  const branch = window.currentBranch || 'Unknown Branch';
-  doc.text(`Branch: ${branch}`, margin, y);
-  const d = new Date(),
-        dd = String(d.getDate()).padStart(2,'0'),
-        mm = String(d.getMonth()+1).padStart(2,'0'),
-        yy = d.getFullYear();
-  doc.text(`As on: ${dd}/${mm}/${yy}`, pageW - margin, y, { align:'right' });
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
+    const margin = 72;
+    const pageW  = doc.internal.pageSize.getWidth();
+    let y        = margin;
 
-  // Totals
-  y += 20;
-  const totalCust = document.getElementById('totalCustomers').textContent;
-  const totalBal  = document.getElementById('summaryGrandTotal').textContent.replace('₹','Rs. ');
-  doc.setFont('helvetica','bold').setTextColor('#000')
-     .text(`Total Customers: ${totalCust}`, margin, y);
-  doc.text(`Total Balance: ${totalBal}`, pageW - margin, y, { align:'right' });
+    // Title
+    doc.setFont('helvetica','bold').setFontSize(18);
+    doc.text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align:'center' });
 
-  // Table data
-  const rows = Array.from(
-    document.getElementById('summaryTable').tBodies[0].rows
-  ).filter(r => r.cells.length >= 2);
+    // Branch & date
+    y += 25;
+    doc.setFont('helvetica','normal').setFontSize(12);
+    const branch = window.currentBranch || 'Unknown Branch';
+    doc.text(`Branch: ${branch}`, margin, y);
 
-  const body = rows.map(r => {
-    const name = r.cells[0].innerText.trim();
-    const due  = r.cells[1].innerText.trim().replace('₹','Rs. ');
-    return [ name, due ];
+    const d = new Date(), dd = String(d.getDate()).padStart(2,'0'),
+          mm = String(d.getMonth()+1).padStart(2,'0'), yy = d.getFullYear();
+    doc.text(`As on: ${dd}/${mm}/${yy}`, pageW - margin, y, { align:'right' });
+
+    // Totals
+    y += 20;
+    const totalCust = document.getElementById('totalCustomers').textContent;
+    const totalBal  = document.getElementById('summaryGrandTotal').textContent.replace('₹','Rs. ');
+    doc.setFont('helvetica','bold').setTextColor('#000')
+       .text(`Total Customers: ${totalCust}`, margin, y);
+    doc.text(`Total Balance: ${totalBal}`, pageW - margin, y, { align:'right' });
+
+    // Table data
+    const rows = Array.from(
+      document.getElementById('summaryTable').tBodies[0].rows
+    ).filter(r => r.cells.length >= 2);
+
+    const body = rows.map(r => [
+      r.cells[0].innerText.trim(),
+      r.cells[1].innerText.trim().replace('₹','Rs. ')
+    ]);
+
+    // Column widths
+    const availW = pageW - margin*2;
+    const colW = [availW*0.6, availW*0.4];
+
+    // AutoTable
+    doc.autoTable({
+      startY: y + 30,
+      margin: { left: margin, right: margin },
+      head: [['Customer Name','Total Due']],
+      body: body,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [230,230,230], textColor: 0, fontStyle: 'bold'
+      },
+      bodyStyles: {
+        textColor: 0, font: 'helvetica', fontSize: 10
+      },
+      alternateRowStyles: { fillColor: [245,245,245] },
+      columnStyles: {
+        0: { cellWidth: colW[0], halign: 'left' },
+        1: { cellWidth: colW[1], halign: 'right' }
+      },
+      styles: { cellPadding: 6, overflow: 'linebreak' },
+      pageBreak: 'auto',
+      showHead: 'everyPage'
+    });
+
+    // Save PDF
+    const filename = `${branch.replace(/\s+/g,'_')}_Summary_${Date.now()}.pdf`;
+    doc.save(filename);
   });
-
-  // Column widths: 60% / 40%
-  const avail = pageW - margin*2;
-  const colW = [ avail*0.6, avail*0.4 ];
-
-  // Draw
-  doc.autoTable({
-    startY: y + 30,
-    margin: { left:margin, right:margin },
-    head: [['Customer Name','Total Due']],
-    body: body,
-    theme: 'grid',
-    headStyles: { fillColor:[230,230,230], textColor:0, fontStyle:'bold' },
-    bodyStyles:{ textColor:0, font:'helvetica', fontSize:10 },
-    alternateRowStyles:{ fillColor:[245,245,245] },
-    columnStyles: {
-      0: { cellWidth: colW[0], halign:'left' },
-      1: { cellWidth: colW[1], halign:'right' }
-    },
-    styles:{ cellPadding:6, overflow:'linebreak' },
-    pageBreak:'auto',
-    showHead:'everyPage'
-  });
-
-  // Save
-  const fname = `${branch.replace(/\s+/g,'_')}_Summary_${Date.now()}.pdf`;
-  doc.save(fname);
 });
 </script>
 
