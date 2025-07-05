@@ -1620,6 +1620,18 @@ function sortTable(tableId, colIndex) {
       doc.text(`Customer: ${customer}`, pageW/2, y, { align: 'center' });
       y += 30;
       
+      // Helper function to convert date format from mm/dd/yyyy to dd/mm/yyyy
+      function convertDateFormat(dateStr) {
+        if (!dateStr) return dateStr;
+        const mmddyyyy = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+        const match = mmddyyyy.exec(dateStr.trim());
+        if (match) {
+          const [, mm, dd, yyyy] = match;
+          return `${dd.padStart(2, '0')}/${mm.padStart(2, '0')}/${yyyy}`;
+        }
+        return dateStr; // Return as-is if not matching expected format
+      }
+      
       // Get data with fallbacks
       let fromDate = '01/04/2025';
       let toDate = 'N/A';
@@ -1628,14 +1640,14 @@ function sortTable(tableId, colIndex) {
       
       const fromElement = document.getElementById('fromDate');
       if (fromElement && fromElement.value) {
-        fromDate = fromElement.value.trim();
+        fromDate = convertDateFormat(fromElement.value.trim());
       }
       
       const toElement = document.getElementById('toDate');
       if (toElement && toElement.value) {
-        toDate = toElement.value.trim();
+        toDate = convertDateFormat(toElement.value.trim());
       } else {
-        // Default to today
+        // Default to today in dd/mm/yyyy format
         const d = new Date();
         const dd = String(d.getDate()).padStart(2, '0');
         const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -1678,9 +1690,9 @@ function sortTable(tableId, colIndex) {
         
         tableData = rows.map((r, i) => [
           String(i + 1),
-          r.cells[5] ? r.cells[5].innerText.trim() : '',                    // Date
-          r.cells[3] ? r.cells[3].innerText.trim() : '',                    // Document Type
-          r.cells[4] ? r.cells[4].innerText.trim() : '',                    // Document No.
+          convertDateFormat(r.cells[5] ? r.cells[5].innerText.trim() : ''),  // Date
+          r.cells[3] ? r.cells[3].innerText.trim() : '',                     // Document Type
+          r.cells[4] ? r.cells[4].innerText.trim() : '',                     // Document No.
           r.cells[7] ? r.cells[7].innerText.trim().replace('₹', 'Rs. ') : 'Rs. 0' // Amount Due
         ]);
       }
@@ -1689,10 +1701,14 @@ function sortTable(tableId, colIndex) {
         tableData = [['1', 'No data', 'available', '-', 'Rs. 0']];
       }
       
-      // Compact table
+      // Compact table - centered
+      const tableWidth = 450; // Fixed table width for centering
+      const tableMargin = (pageW - tableWidth) / 2;
+      
       doc.autoTable({
         startY: y,
-        margin: { left: margin, right: margin },
+        margin: { left: tableMargin, right: tableMargin },
+        tableWidth: tableWidth,
         head: [['S.No', 'Date', 'Document Type', 'Document No.', 'Amount Due']],
         body: tableData,
         theme: 'grid',
@@ -1718,7 +1734,7 @@ function sortTable(tableId, colIndex) {
         
         columnStyles: {
           0: { cellWidth: 40, halign: 'center' },
-          1: { cellWidth: 80, halign: 'left' },
+          1: { cellWidth: 80, halign: 'center' },
           2: { cellWidth: 120, halign: 'left' },
           3: { cellWidth: 120, halign: 'left' },
           4: { cellWidth: 90, halign: 'right' }
