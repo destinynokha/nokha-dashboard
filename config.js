@@ -1,4 +1,4 @@
-rfunction decodePassword(encoded, key = 7) {
+function decodePassword(encoded, key = 7) {
   return encoded.split('').map(char =>
     String.fromCharCode(char.charCodeAt(0) ^ key)
   ).join('');
