@@ -1396,34 +1396,28 @@ function sortTable(tableId, colIndex) {
   console.log("sortTable()", tableId, colIndex);
   const table = document.getElementById(tableId);
   if (!table) return;
-  
+
   let switching = true;
   let dir = "asc";
-  
   while (switching) {
     switching = false;
-    const rows = table.rows;
-    // declare shouldSwitch here so it’s visible below
-    let shouldSwitch = false;
-
-    for (let i = 1; i < rows.length - 1; i++) {
-      const xcell = rows[i].cells[colIndex];
-      const ycell = rows[i + 1].cells[colIndex];
-      let x = xcell.innerText.trim(), y = ycell.innerText.trim();
-
-      const xn = parseFloat(x.replace(/[^0-9.\-]+/g, ""));
-      const yn = parseFloat(y.replace(/[^0-9.\-]+/g, ""));
+    const rows = table.tBodies[0].rows;  // just the body rows
+    for (let i = 0; i < rows.length - 1; i++) {
+      let shouldSwitch = false;
+      let x = rows[i].cells[colIndex].innerText.trim();
+      let y = rows[i+1].cells[colIndex].innerText.trim();
+      const xn = parseFloat(x.replace(/[^0-9.\-]+/g,""));
+      const yn = parseFloat(y.replace(/[^0-9.\-]+/g,""));
       if (!isNaN(xn) && !isNaN(yn)) { x = xn; y = yn; }
 
-      if ((dir === "asc"  && x > y) ||
-          (dir === "desc" && x < y)) {
+      if ((dir==="asc"  && x > y) || (dir==="desc" && x < y)) {
         shouldSwitch = true;
         break;
       }
     }
-
     if (shouldSwitch) {
-      rows[1].parentNode.insertBefore(rows[2], rows[1]); // Will be adjusted in next loop
+      // swap the two rows we found
+      rows[i].parentNode.insertBefore(rows[i+1], rows[i]);
       switching = true;
     } else if (dir === "asc") {
       dir = "desc";
@@ -1432,6 +1426,7 @@ function sortTable(tableId, colIndex) {
   }
 }
 </script>
+
 
 
 
