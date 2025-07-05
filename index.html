@@ -1454,26 +1454,48 @@ function sortTable(tableId, colIndex) {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('downloadPdfBtn').addEventListener('click', () => {
     const container = document.createElement('div');
-    /* … header, styles, info, totals as before … */
-    const orig = document.getElementById('dashboardTable');
-    const tbl  = document.createElement('table');
-    /* … build thead with S.No, Date, Document Type, Document No., Amount Due … */
-    const tbody = tbl.createTBody();
-    let sn = 1;
-    Array.from(orig.tBodies[0].rows).forEach(r => {
-      if (r.cells.length < 8) return;
-      const date = r.cells[5].innerText.trim();
-      const type = r.cells[3].innerText.trim();
-      const doc  = r.cells[4].innerText.trim();
-      const bal  = r.cells[7].innerText.trim();
-      const nr = tbody.insertRow();
-      [sn++, date, type, doc, bal].forEach((txt, i) => {
-        const c = nr.insertCell();
-        c.innerText = txt;
-        if (i === 4) c.style.textAlign = 'right';
-      });
-    });
-    container.appendChild(tbl);
+   // 5) Build new table with explicit innerHTML for thead
+const orig = document.getElementById('dashboardTable');
+const tbl  = document.createElement('table');
+tbl.style.width = '100%';
+tbl.style.borderCollapse = 'collapse';
+tbl.style.marginTop = '20px';
+
+// inject thead via innerHTML
+tbl.innerHTML = `
+  <thead>
+    <tr>
+      <th style="border:1px solid #ddd;padding:8px;">S.No</th>
+      <th style="border:1px solid #ddd;padding:8px;">Date</th>
+      <th style="border:1px solid #ddd;padding:8px;">Document Type</th>
+      <th style="border:1px solid #ddd;padding:8px;">Document No.</th>
+      <th style="border:1px solid #ddd;padding:8px;text-align:right;">Amount Due</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+`;
+const tbody = tbl.querySelector('tbody');
+
+let sn = 1;
+Array.from(orig.tBodies[0].rows).forEach(r => {
+  if (r.cells.length < 8) return;  // skip loading/no-data
+  const date = r.cells[5].innerText.trim();
+  const type = r.cells[3].innerText.trim();
+  const doc  = r.cells[4].innerText.trim();
+  const bal  = r.cells[7].innerText.trim();
+  tbody.innerHTML += `
+    <tr>
+      <td style="border:1px solid #ddd;padding:8px;">${sn++}</td>
+      <td style="border:1px solid #ddd;padding:8px;">${date}</td>
+      <td style="border:1px solid #ddd;padding:8px;">${type}</td>
+      <td style="border:1px solid #ddd;padding:8px;">${doc}</td>
+      <td style="border:1px solid #ddd;padding:8px;text-align:right;">${bal}</td>
+    </tr>
+  `;
+});
+
+container.appendChild(tbl);
+
 
     html2pdf().set({
       margin: 0.5,
