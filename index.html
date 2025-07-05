@@ -954,43 +954,45 @@
         }
 
        async function refreshDashboard() {
-    if (!currentBranch) {
-        showError('Please login to a branch first');
-        return;
-    }
-    
-    const tableBody = document.getElementById('dashboardTableBody');
-    tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading dashboard data...</td></tr>';
-    
-    try {
-        // grab the raw dd/mm/yyyy strings directly
-        const rawFrom = document.getElementById('fromDate').value; // e.g. "05/07/2025"
-        const rawTo   = document.getElementById('toDate').value;   // e.g. "05/07/2025"
-        
-        const params = {
-            fromDate:     rawFrom,
-            toDate:       rawTo,
-            customerName: document.getElementById('customerSelect').value,
-            dueDays:      document.getElementById('dueDays').value
-        };
+  if (!currentBranch) {
+    showError('Please login to a branch first');
+    return;
+  }
 
-        const dashboardData = await makeRequest('getDashboardData', params);
-        
-        updateDashboardTable(dashboardData);
-        updateDashboardStats(dashboardData.totals, dashboardData.data.length);
+  const tableBody = document.getElementById('dashboardTableBody');
+  tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading dashboard data...</td></tr>';
 
-        showSuccess('Dashboard refreshed successfully!');
-    } catch (error) {
-        console.error('Error refreshing dashboard:', error);
-        showError('Failed to refresh dashboard: ' + error.message);
-        tableBody.innerHTML = '<tr><td colspan="9" class="error">❌ Failed to load data</td></tr>';
-    }
+  try {
+    // 1) Grab raw dd/mm/yyyy from your TEXT inputs:
+    const rawFrom = document.getElementById('fromDate').value; // e.g. "" or "01/05/2025"
+    const rawTo   = document.getElementById('toDate').value;   // e.g. "05/07/2025"
 
-           // … inside refreshDashboard(), just before:
-console.log("→ refreshDashboard params:", params);
-const dashboardData = await makeRequest('getDashboardData', params);
+    // DEBUG: make sure these are what you expect
+    console.log('→ Sending params:', { fromDate: rawFrom, toDate: rawTo });
 
+    // 2) Build params exactly as your server expects (it will parse dd/MM/yyyy)
+    const params = {
+      fromDate:     rawFrom,
+      toDate:       rawTo,
+      customerName: document.getElementById('customerSelect').value,
+      dueDays:      document.getElementById('dueDays').value
+    };
+
+    // 3) Fire the request *once* and catch the response
+    const dashboardData = await makeRequest('getDashboardData', params);
+    console.log('← Received rows:', dashboardData.data.length);
+
+    // 4) Render results
+    updateDashboardTable(dashboardData);
+    updateDashboardStats(dashboardData.totals, dashboardData.data.length);
+    showSuccess('Dashboard refreshed successfully!');
+  } catch (error) {
+    console.error('Error refreshing dashboard:', error);
+    showError('Failed to refresh dashboard: ' + error.message);
+    tableBody.innerHTML = '<tr><td colspan="9" class="error">❌ Failed to load data</td></tr>';
+  }
 }
+
 
 
         function updateDashboardTable(data) {
