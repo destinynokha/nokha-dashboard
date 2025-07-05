@@ -1568,28 +1568,33 @@ document.getElementById('downloadPdfBtn').addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('downloadSummaryPdfBtn');
   if (!btn) return;
+
   btn.addEventListener('click', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
 
-    const margin = 72;
+    const margin = 72;                       // 1" margins
     const pageW  = doc.internal.pageSize.getWidth();
-    let y        = margin;
+    let   y      = margin;
 
-    // Title
+    // — Title —
     doc.setFont('helvetica','bold').setFontSize(18)
        .text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align:'center' });
 
-    // Branch & Date
+    // — Branch & Date —
     y += 25;
     doc.setFont('helvetica','normal').setFontSize(12);
-    const branch = window.currentBranch || 'Unknown Branch';
+    const branchRaw = window.currentBranch || 'Unknown Branch';
+    const branch    = String(branchRaw);     // ensure string
     doc.text(`Branch: ${branch}`, margin, y);
-    const d = new Date(), dd=String(d.getDate()).padStart(2,'0'),
-          mm=String(d.getMonth()+1).padStart(2,'0'), yy=d.getFullYear();
+
+    const d  = new Date(),
+          dd = String(d.getDate()).padStart(2,'0'),
+          mm = String(d.getMonth()+1).padStart(2,'0'),
+          yy = d.getFullYear();
     doc.text(`As on: ${dd}/${mm}/${yy}`, pageW - margin, y, { align:'right' });
 
-    // Totals
+    // — Totals —
     y += 20;
     const totalCust = document.getElementById('totalCustomers').textContent;
     const totalBal  = document.getElementById('summaryGrandTotal').textContent.replace('₹','Rs. ');
@@ -1597,7 +1602,7 @@ document.addEventListener('DOMContentLoaded', () => {
        .text(`Total Customers: ${totalCust}`, margin, y);
     doc.text(`Total Balance: ${totalBal}`, pageW - margin, y, { align:'right' });
 
-    // Gather table data
+    // — Table Data —
     const rows = Array.from(
       document.getElementById('summaryTable').tBodies[0].rows
     ).filter(r => r.cells.length >= 2);
@@ -1606,11 +1611,11 @@ document.addEventListener('DOMContentLoaded', () => {
       r.cells[1].innerText.trim().replace('₹','Rs. ')
     ]);
 
-    // Compute widths (60/40)
-    const avail = pageW - margin*2;
-    const colW  = [avail*0.6, avail*0.4];
+    // — Compute column widths (60/40 split) —
+    const availW = pageW - margin*2;
+    const colW   = [availW * 0.6, availW * 0.4];
 
-    // Draw with AutoTable
+    // — Draw with AutoTable —
     doc.autoTable({
       startY: y + 30,
       margin: { left: margin, right: margin },
@@ -1620,23 +1625,22 @@ document.addEventListener('DOMContentLoaded', () => {
       headStyles: { fillColor:[230,230,230], textColor:0, fontStyle:'bold' },
       bodyStyles:{ textColor:0, font:'helvetica', fontSize:10 },
       alternateRowStyles:{ fillColor:[245,245,245] },
-      columnStyles:{
-        0: { cellWidth:colW[0], halign:'left' },
-        1: { cellWidth:colW[1], halign:'right'}
+      columnStyles: {
+        0: { cellWidth: colW[0], halign:'left' },
+        1: { cellWidth: colW[1], halign:'right' }
       },
       styles:{ cellPadding:6, overflow:'linebreak' },
       pageBreak:'auto',
       showHead:'everyPage'
     });
 
-    // Save
-    const filename = `${branch.replace(/\s+/g,'_')}_Summary_${Date.now()}.pdf`;
+    // — Save PDF (use branch safely cast to string) —
+    const safeBranch = branch.replace(/\s+/g,'_');
+    const filename   = `${safeBranch}_Summary_${Date.now()}.pdf`;
     doc.save(filename);
   });
 });
 </script>
-
-
 
 
 
