@@ -1567,85 +1567,75 @@ document.getElementById('downloadPdfBtn').addEventListener('click', () => {
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('downloadSummaryPdfBtn');
-  console.log('Summary PDF button found?', !!btn);
   if (!btn) return;
-
   btn.addEventListener('click', () => {
-    console.log('Generating Summary PDF…');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
 
-    // 1) Build a temporary container
-    const c = document.createElement('div');
-    c.style.padding = '40px';
-    c.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-    c.style.color = '#333';
+    const margin = 72;
+    const pageW  = doc.internal.pageSize.getWidth();
+    let y        = margin;
 
-    // 2) Header: company, branch, date
-    const h1 = document.createElement('h1');
-    h1.innerText = 'BHAGWATI MOTORS INDIA PRIVATE LIMITED';
-    h1.style.textAlign = 'center';
-    h1.style.marginBottom = '20px';
-    h1.style.fontSize = '24px';
-    c.appendChild(h1);
+    // Title
+    doc.setFont('helvetica','bold').setFontSize(18)
+       .text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align:'center' });
 
+    // Branch & Date
+    y += 25;
+    doc.setFont('helvetica','normal').setFontSize(12);
     const branch = window.currentBranch || 'Unknown Branch';
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yy = today.getFullYear();
-    const info = document.createElement('p');
-    info.innerHTML = `
-      <strong>Branch:</strong> ${branch}
-      &nbsp;&nbsp;&nbsp;
-      <strong>As on:</strong> ${dd}/${mm}/${yy}
-    `;
-    info.style.marginBottom = '8px';
-    c.appendChild(info);
+    doc.text(`Branch: ${branch}`, margin, y);
+    const d = new Date(), dd=String(d.getDate()).padStart(2,'0'),
+          mm=String(d.getMonth()+1).padStart(2,'0'), yy=d.getFullYear();
+    doc.text(`As on: ${dd}/${mm}/${yy}`, pageW - margin, y, { align:'right' });
 
-    // 3) Totals
-    const totC = document.getElementById('totalCustomers').textContent;
-    const totB = document.getElementById('summaryGrandTotal').textContent;
-    const tots = document.createElement('p');
-    tots.innerHTML = `
-      <strong>Total Customers:</strong> ${totC}
-      &nbsp;&nbsp;&nbsp;
-      <strong>Total Balance:</strong> ${totB}
-    `;
-    tots.style.marginBottom = '20px';
-    c.appendChild(tots);
+    // Totals
+    y += 20;
+    const totalCust = document.getElementById('totalCustomers').textContent;
+    const totalBal  = document.getElementById('summaryGrandTotal').textContent.replace('₹','Rs. ');
+    doc.setFont('helvetica','bold').setTextColor('#000')
+       .text(`Total Customers: ${totalCust}`, margin, y);
+    doc.text(`Total Balance: ${totalBal}`, pageW - margin, y, { align:'right' });
 
-    // 4) Clone & style the summary table
-    const origTbl = document.getElementById('summaryTable');
-    const tbl = origTbl.cloneNode(true);
-    tbl.style.width = '100%';
-    tbl.style.borderCollapse = 'collapse';
-    // add light borders & padding
-    tbl.querySelectorAll('th, td').forEach(cell => {
-      cell.style.border = '1px solid #ccc';
-      cell.style.padding = '6px';
-      if (cell.tagName === 'TH') {
-        cell.style.background = '#e6e6e6';
-        cell.style.color = '#000';
-        cell.style.fontWeight = 'bold';
-      }
-      // right-align the 2nd column
-      if (cell.cellIndex === 1) cell.style.textAlign = 'right';
+    // Gather table data
+    const rows = Array.from(
+      document.getElementById('summaryTable').tBodies[0].rows
+    ).filter(r => r.cells.length >= 2);
+    const body = rows.map(r => [
+      r.cells[0].innerText.trim(),
+      r.cells[1].innerText.trim().replace('₹','Rs. ')
+    ]);
+
+    // Compute widths (60/40)
+    const avail = pageW - margin*2;
+    const colW  = [avail*0.6, avail*0.4];
+
+    // Draw with AutoTable
+    doc.autoTable({
+      startY: y + 30,
+      margin: { left: margin, right: margin },
+      head: [['Customer Name','Total Due']],
+      body: body,
+      theme: 'grid',
+      headStyles: { fillColor:[230,230,230], textColor:0, fontStyle:'bold' },
+      bodyStyles:{ textColor:0, font:'helvetica', fontSize:10 },
+      alternateRowStyles:{ fillColor:[245,245,245] },
+      columnStyles:{
+        0: { cellWidth:colW[0], halign:'left' },
+        1: { cellWidth:colW[1], halign:'right'}
+      },
+      styles:{ cellPadding:6, overflow:'linebreak' },
+      pageBreak:'auto',
+      showHead:'everyPage'
     });
-    c.appendChild(tbl);
 
-    // 5) Generate and download
-    html2pdf()
-      .set({
-        margin:       0.5,                           // inches
-        filename:     `${branch.replace(/\s+/g,'_')}_Summary.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-      })
-      .from(c)
-      .save();
+    // Save
+    const filename = `${branch.replace(/\s+/g,'_')}_Summary_${Date.now()}.pdf`;
+    doc.save(filename);
   });
 });
 </script>
+
 
 
 
