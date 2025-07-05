@@ -1,4 +1,4 @@
-function decodePassword(encoded, key = 7) {
+rfunction decodePassword(encoded, key = 7) {
   return encoded.split('').map(char =>
     String.fromCharCode(char.charCodeAt(0) ^ key)
   ).join('');
@@ -20,7 +20,7 @@ const BRANCH_CONFIG = {
   bikaner: {
     name: "BIKANER MAIN",
     username: "sishpal",
-    password: decodePassword("cildkhld654"), // "enlfibu654"
+    password: decodePassword("cildkhld654"), // "bikaner123"
     apiUrl: "https://script.google.com/macros/s/AKfycbwJlH4BxuDKmyJndQzWXW65Ik7DuYdJvyFPzFishfvOZz76-kok6MAupf2wZazlh_CO/exec"
   }
 };
