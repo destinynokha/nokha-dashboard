@@ -20,7 +20,7 @@ const BRANCH_CONFIG = {
   bikaner: {
     name: "BIKANER MAIN",
     username: "sishpal",
-    password: decodePassword("cildkhld654"), // "bikaner123"
+    password: decodePassword("enlfibu654"), // "bikaner123"
     apiUrl: "https://script.google.com/macros/s/AKfycbwJlH4BxuDKmyJndQzWXW65Ik7DuYdJvyFPzFishfvOZz76-kok6MAupf2wZazlh_CO/exec"
   }
 };
