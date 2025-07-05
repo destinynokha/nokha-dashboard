@@ -1450,20 +1450,18 @@ function sortTable(tableId, colIndex) {
 </script>
 
 
-    <script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('downloadPdfBtn');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    // 1) Build container + PDF‐only CSS
+    // 1) Container + PDF‐only CSS
     const container = document.createElement('div');
     container.style.padding = '40px';
     container.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
     container.style.color = '#333';
-
     const style = document.createElement('style');
     style.textContent = `
-      /* Ensure headers repeat and rows don't break */
       table { width:100%; border-collapse: collapse; margin-top: 20px; page-break-inside: auto; }
       thead { display: table-header-group; }
       tfoot { display: table-footer-group; }
@@ -1476,12 +1474,12 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     container.appendChild(style);
 
-    // 2) Title
+    // 2) Header
     const h1 = document.createElement('h1');
     h1.innerText = 'BHAGWATI MOTORS INDIA PRIVATE LIMITED';
     container.appendChild(h1);
 
-    // 3) Customer & period
+    // 3) Info
     let from = document.getElementById('fromDate').value.trim() || '01/04/2025';
     let to   = document.getElementById('toDate').value.trim();
     if (!to) {
@@ -1494,10 +1492,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cust = document.getElementById('customerSelect').value || 'All_Customers';
     const info = document.createElement('div');
     info.className = 'info';
-    info.innerHTML = `
-      <div><strong>Customer:</strong> ${cust}</div>
-      <div><strong>Period:</strong> ${from} – ${to}</div>
-    `;
+    info.innerHTML = `<div><strong>Customer:</strong> ${cust}</div>
+                      <div><strong>Period:</strong> ${from} – ${to}</div>`;
     container.appendChild(info);
 
     // 4) Totals
@@ -1505,41 +1501,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const total   = document.getElementById('grandTotal').textContent;
     const totals = document.createElement('div');
     totals.className = 'totals';
-    totals.innerHTML = `
-      <div><strong style="color:#c0392b;">Overdue:</strong> ${overdue}</div>
-      <div><strong style="color:#27ae60;">Total:</strong> ${total}</div>
-    `;
+    totals.innerHTML = `<div><strong style="color:#c0392b;">Overdue:</strong> ${overdue}</div>
+                        <div><strong style="color:#27ae60;">Total:</strong> ${total}</div>`;
     container.appendChild(totals);
 
-    // 5) Table with only Type, Doc. No., Posting Date, Balance Due
+    // 5) Build new table
     const orig = document.getElementById('dashboardTable');
     const tbl  = document.createElement('table');
-    // Header
+
+    // 5a) Header row
     const thead = tbl.createTHead();
     const hr = thead.insertRow();
-    ['Type','Doc. No.','Posting Date','Balance Due'].forEach(txt => {
+    ['S.No','Date','Document Type','Document No.','Amount Due'].forEach((txt,i) => {
       const th = document.createElement('th');
       th.innerText = txt;
+      if (i === 4) th.style.textAlign = 'right';
       hr.appendChild(th);
     });
-    // Body
+
+    // 5b) Body rows
     const tbody = tbl.createTBody();
+    let sn = 1;
     Array.from(orig.tBodies[0].rows).forEach(r => {
-      if (r.cells.length < 8) return;  // skip loading/no-data rows
-      // correct mapping: col2=Type, col3=Doc, col5=Posting, col7=Balance
+      if (r.cells.length < 8) return;
+      const date = r.cells[5].innerText.trim();
       const type = r.cells[2].innerText.trim();
       const doc  = r.cells[3].innerText.trim();
-      const post = r.cells[5].innerText.trim();
       const bal  = r.cells[7].innerText.trim();
       const nr = tbody.insertRow();
-      [type, doc, post, bal].forEach(txt => {
+      [sn++, date, type, doc, bal].forEach((txt, i) => {
         const c = nr.insertCell();
         c.innerText = txt;
+        if (i === 4) c.style.textAlign = 'right';
       });
     });
     container.appendChild(tbl);
 
-    // 6) Generate PDF, using customer name in filename
+    // 6) Generate and download
     html2pdf()
       .set({
         margin:       0.5,
@@ -1553,6 +1551,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
 
 
 
