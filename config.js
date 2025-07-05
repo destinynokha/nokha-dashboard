@@ -14,13 +14,13 @@ const BRANCH_CONFIG = {
   honda: {
     name: "HONDA",
     username: "radheshyam",
-    password: decodePassword("idkda654"), // "honda123"
+    password: decodePassword("ohicf654"), // "honda123"
     apiUrl: "https://script.google.com/macros/s/AKfycbw-YClOVhPyxUp0AQM3m7261embbCmO-BeM-ZGQmSewC2qvLN8i8yvZGU5Aeg7HONcs/exec"
   },
   bikaner: {
     name: "BIKANER MAIN",
     username: "sishpal",
-    password: decodePassword("cildkhld654"), // "bikaner123"
+    password: decodePassword("cildkhld654"), // "enlfibu654"
     apiUrl: "https://script.google.com/macros/s/AKfycbwJlH4BxuDKmyJndQzWXW65Ik7DuYdJvyFPzFishfvOZz76-kok6MAupf2wZazlh_CO/exec"
   }
 };
