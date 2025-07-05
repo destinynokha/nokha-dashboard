@@ -641,6 +641,7 @@
                     <div class="controls-grid">
                         <div class="form-group">
                             <button class="btn btn-primary" onclick="refreshSummary()">🔄 Refresh Summary</button>
+                            <button id="downloadSummaryPdfBtn">⬇️ Download Summary PDF</button>
                         </div>
                     </div>
                 </div>
@@ -1556,7 +1557,82 @@ document.getElementById('downloadPdfBtn').addEventListener('click', () => {
 </script>
 
 
+<script>
+document.getElementById('downloadSummaryPdfBtn').addEventListener('click', () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
 
+  const margin    = 72; // 1"
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let   cursorY   = margin;
+
+  // — Company & Branch Header —
+  doc.setFont('helvetica','bold').setFontSize(18);
+  doc.text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageWidth/2, cursorY, { align:'center' });
+
+  cursorY += 25;
+  doc.setFont('helvetica','normal').setFontSize(12);
+  const branch = window.currentBranch || 'Unknown Branch';
+  doc.text(`Branch: ${branch}`, margin, cursorY);
+
+  // — As on Today —
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2,'0');
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const yy = today.getFullYear();
+  doc.text(`As on: ${dd}/${mm}/${yy}`, pageWidth - margin, cursorY, { align:'right' });
+
+  // — Totals —
+  cursorY += 20;
+  const totalCust = document.getElementById('totalCustomers').textContent;
+  let totalBal    = document.getElementById('summaryGrandTotal').textContent.replace('₹','Rs. ');
+  doc.setFont('helvetica','bold').setTextColor('#000')
+     .text(`Total Customers: ${totalCust}`, margin, cursorY);
+  doc.text(`Total Balance: ${totalBal}`, pageWidth - margin, cursorY, { align:'right' });
+
+  // — Prepare table data —
+  const rows = Array.from(
+    document.getElementById('summaryTable').tBodies[0].rows
+  ).filter(r => r.cells.length >= 2);
+
+  const body = rows.map(r => {
+    const custName = r.cells[0].innerText.trim();
+    let due       = r.cells[1].innerText.trim().replace('₹','Rs. ');
+    return [custName, due];
+  });
+
+  // — Column widths: let name take 60%, due 40% of available width —
+  const availW = pageWidth - margin*2;
+  const colStyles = {
+    0: { cellWidth: availW * 0.6, halign:'left'  },
+    1: { cellWidth: availW * 0.4, halign:'right' }
+  };
+
+  // — Draw table —
+  doc.autoTable({
+    startY: cursorY + 30,
+    margin: { left: margin, right: margin },
+    head: [['Customer Name','Total Due']],
+    body: body,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [230,230,230], textColor: 0, fontStyle: 'bold'
+    },
+    bodyStyles: {
+      textColor: 0, font:'helvetica', fontSize:10
+    },
+    alternateRowStyles: { fillColor: [245,245,245] },
+    columnStyles: colStyles,
+    styles: { cellPadding:6, overflow:'linebreak' },
+    pageBreak: 'auto',
+    showHead: 'everyPage'
+  });
+
+  // — Save PDF —
+  const filename = `${branch.replace(/\s+/g,'_')}_Summary_${Date.now()}.pdf`;
+  doc.save(filename);
+});
+</script>
 
 
 
