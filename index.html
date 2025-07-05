@@ -1448,36 +1448,40 @@ function sortTable(tableId, colIndex) {
   table.dataset.sortDir = dir === "asc" ? "desc" : "asc";
 }
 </script>
-<script>
+
+
+    <script>
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('downloadPdfBtn');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    // 1) Build container
+    // 1) Build container + PDF‐only CSS
     const container = document.createElement('div');
     container.style.padding = '40px';
     container.style.fontFamily = "'Helvetica Neue', Helvetica, Arial, sans-serif";
     container.style.color = '#333';
 
-    // 2) PDF-only styles (repeat headers, avoid splits)
     const style = document.createElement('style');
     style.textContent = `
-      table { width:100%; border-collapse: collapse; margin-top: 20px; }
+      /* Ensure headers repeat and rows don't break */
+      table { width:100%; border-collapse: collapse; margin-top: 20px; page-break-inside: auto; }
       thead { display: table-header-group; }
-      th, td { border:1px solid #ddd; padding:8px; page-break-inside: avoid; }
+      tfoot { display: table-footer-group; }
+      tr { page-break-inside: avoid; page-break-after: auto; }
+      th, td { border:1px solid #ddd; padding:8px; }
       th { background:#f2f2f2; color:#000; font-weight:bold; text-align:left; }
       td { color:#333; }
-      .info, .totals { display:flex; justify-content:space-between; margin-top:12px; }
-      h1 { text-align:center; margin-bottom:20px; font-size:24px; }
+      .info, .totals { display:flex; justify-content:space-between; margin-top:12px; page-break-inside: avoid; }
+      h1 { text-align:center; margin-bottom:20px; font-size:24px; page-break-after: avoid; }
     `;
     container.appendChild(style);
 
-    // 3) Title
+    // 2) Title
     const h1 = document.createElement('h1');
     h1.innerText = 'BHAGWATI MOTORS INDIA PRIVATE LIMITED';
     container.appendChild(h1);
 
-    // 4) Info row (Customer & Period)
+    // 3) Customer & period
     let from = document.getElementById('fromDate').value.trim() || '01/04/2025';
     let to   = document.getElementById('toDate').value.trim();
     if (!to) {
@@ -1487,52 +1491,59 @@ document.addEventListener('DOMContentLoaded', () => {
             yy = d.getFullYear();
       to = `${dd}/${mm}/${yy}`;
     }
-    const cust = document.getElementById('customerSelect').value || 'All Customers';
+    const cust = document.getElementById('customerSelect').value || 'All_Customers';
     const info = document.createElement('div');
     info.className = 'info';
-    info.innerHTML = `<div><strong>Customer:</strong> ${cust}</div>
-                      <div><strong>Period:</strong> ${from} – ${to}</div>`;
+    info.innerHTML = `
+      <div><strong>Customer:</strong> ${cust}</div>
+      <div><strong>Period:</strong> ${from} – ${to}</div>
+    `;
     container.appendChild(info);
 
-    // 5) Totals row
+    // 4) Totals
     const overdue = document.getElementById('overdueTotal').textContent;
     const total   = document.getElementById('grandTotal').textContent;
     const totals = document.createElement('div');
     totals.className = 'totals';
-    totals.innerHTML = `<div><strong style="color:#c0392b;">Overdue:</strong> ${overdue}</div>
-                        <div><strong style="color:#27ae60;">Total:</strong> ${total}</div>`;
+    totals.innerHTML = `
+      <div><strong style="color:#c0392b;">Overdue:</strong> ${overdue}</div>
+      <div><strong style="color:#27ae60;">Total:</strong> ${total}</div>
+    `;
     container.appendChild(totals);
 
-    // 6) Table
+    // 5) Table with only Type, Doc. No., Posting Date, Balance Due
     const orig = document.getElementById('dashboardTable');
     const tbl  = document.createElement('table');
     // Header
     const thead = tbl.createTHead();
     const hr = thead.insertRow();
-    ['Type','Doc. No.','Posting Date','Balance Due'].forEach(text => {
+    ['Type','Doc. No.','Posting Date','Balance Due'].forEach(txt => {
       const th = document.createElement('th');
-      th.innerText = text;
+      th.innerText = txt;
       hr.appendChild(th);
     });
     // Body
     const tbody = tbl.createTBody();
     Array.from(orig.tBodies[0].rows).forEach(r => {
-      // skip empty/loading rows
-      if (r.cells.length < 8) return;
-      const [ , , type, doc, , post, due, bal ] = Array.from(r.cells).map(c=>c.innerText.trim());
-      const row = tbody.insertRow();
+      if (r.cells.length < 8) return;  // skip loading/no-data rows
+      // correct mapping: col2=Type, col3=Doc, col5=Posting, col7=Balance
+      const type = r.cells[2].innerText.trim();
+      const doc  = r.cells[3].innerText.trim();
+      const post = r.cells[5].innerText.trim();
+      const bal  = r.cells[7].innerText.trim();
+      const nr = tbody.insertRow();
       [type, doc, post, bal].forEach(txt => {
-        const cell = row.insertCell();
-        cell.innerText = txt;
+        const c = nr.insertCell();
+        c.innerText = txt;
       });
     });
     container.appendChild(tbl);
 
-    // 7) Generate & download PDF
+    // 6) Generate PDF, using customer name in filename
     html2pdf()
       .set({
         margin:       0.5,
-        filename:     `BHAGWATI_MOTORS_Report_${Date.now()}.pdf`,
+        filename:     `${cust.replace(/\s+/g,'_')}_Report_${Date.now()}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2 },
         jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
