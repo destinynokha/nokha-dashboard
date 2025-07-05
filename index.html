@@ -1151,6 +1151,7 @@
 
 
         function updateSummaryTable(data) {
+            data.customers.sort((a, b) => a.customer.localeCompare(b.customer));
             const tableBody = document.getElementById('summaryTableBody');
             
             if (!data.customers || data.customers.length === 0) {
