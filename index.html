@@ -1587,7 +1587,7 @@ function sortTable(tableId, colIndex) {
 
   
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+   document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('downloadPdfBtn');
   if (!btn) {
     console.log('downloadPdfBtn not found');
@@ -1607,7 +1607,7 @@ function sortTable(tableId, colIndex) {
       doc.setFont('helvetica', 'bold')
          .setFontSize(18)
          .setTextColor(40, 40, 40);
-      doc.text('BHAGWATI MOTORS NOKHA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
+      doc.text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
       y += 25;
       
       // Customer - centered below company name
@@ -1701,15 +1701,16 @@ function sortTable(tableId, colIndex) {
         tableData = [['1', 'No data', 'available', '-', 'Rs. 0']];
       }
       
-      // Compact table - centered
-      const tableWidth = 450; // Fixed table width for centering
+      // Compact table - properly sized to fit page
+      const availableWidth = pageW - (margin * 2); // Total available width
+      const tableWidth = Math.min(420, availableWidth); // Max 420pt or available width
       const tableMargin = (pageW - tableWidth) / 2;
       
       doc.autoTable({
         startY: y,
         margin: { left: tableMargin, right: tableMargin },
         tableWidth: tableWidth,
-        head: [['S.No', 'Date', 'Document Type', 'Document No.', 'Amount Due']],
+        head: [['S.No', 'Date', 'Doc Type', 'Doc No.', 'Amount Due']],
         body: tableData,
         theme: 'grid',
         
@@ -1733,17 +1734,18 @@ function sortTable(tableId, colIndex) {
         },
         
         columnStyles: {
-          0: { cellWidth: 40, halign: 'center' },
-          1: { cellWidth: 80, halign: 'center' },
-          2: { cellWidth: 120, halign: 'left' },
-          3: { cellWidth: 120, halign: 'left' },
-          4: { cellWidth: 90, halign: 'right' }
+          0: { cellWidth: 35, halign: 'center' },   // S.No - smaller
+          1: { cellWidth: 70, halign: 'center' },   // Date - smaller
+          2: { cellWidth: 100, halign: 'left' },    // Document Type - smaller
+          3: { cellWidth: 90, halign: 'left' },     // Document No. - smaller
+          4: { cellWidth: 75, halign: 'right' }     // Amount Due - smaller
         },
         
         styles: {
           lineWidth: 0.3,
           lineColor: [200, 200, 200],
-          overflow: 'linebreak'
+          overflow: 'linebreak',
+          cellPadding: 4
         },
         
         pageBreak: 'auto',
