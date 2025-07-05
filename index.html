@@ -874,9 +874,7 @@
             
             currentPage = pageId;
         }
-// … inside refreshDashboard(), just before:
-console.log("→ refreshDashboard params:", params);
-const dashboardData = await makeRequest('getDashboardData', params);
+
 
         async function makeRequest(action, params = {}) {
             if (!currentApiUrl) {
