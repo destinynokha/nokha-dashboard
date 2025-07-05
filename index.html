@@ -939,11 +939,18 @@
             tableBody.innerHTML = '<tr><td colspan="9" class="loading">🔄 Loading dashboard data...</td></tr>';
             
             try {
-                const params = {
-                    fromDate: document.getElementById('fromDate').value,
-                    toDate: document.getElementById('toDate').value,
-                    customerName: document.getElementById('customerSelect').value,
-                    dueDays: document.getElementById('dueDays').value
+                 // parse HTML date (YYYY-MM-DD) into DD/MM/YYYY
+                   function parseDMYFromISO(str) {
+                     const [yyyy, mm, dd] = str.split('-');
+                     return `${dd}/${mm}/${yyyy}`;
+                   }
+                   const rawFrom = document.getElementById('fromDate').value;
+                   const rawTo   = document.getElementById('toDate').value;
+                   const params = {
+                       fromDate:      parseDMYFromISO(rawFrom),
+                       toDate:        parseDMYFromISO(rawTo),
+                       customerName:  document.getElementById('customerSelect').value,
+                       dueDays:       document.getElementById('dueDays').value
                 };
 
                  const dashboardData = await makeRequest('getDashboardData', params);
