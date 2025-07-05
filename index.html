@@ -1475,7 +1475,7 @@ function sortTable(tableId, colIndex) {
       doc.setFont('helvetica', 'bold')
          .setFontSize(18)
          .setTextColor(40, 40, 40);
-      doc.text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
+      doc.text('BHAGWATI MOTORS NOKHA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
       y += 25;
       
       // Branch - centered below company name
@@ -1743,7 +1743,7 @@ function sortTable(tableId, colIndex) {
       // Save PDF
       const safeCustomer = customer.replace(/\s+/g, '_');
       const timestamp = Date.now();
-      const filename = `${safeCustomer}_Report_${timestamp}.pdf`;
+      const filename = `${safeCustomer}_${timestamp}.pdf`;
       
       doc.save(filename);
       console.log('Dashboard PDF created successfully');
