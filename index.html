@@ -1460,265 +1460,147 @@ function sortTable(tableId, colIndex) {
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('PDF script loaded');
+  console.log('✅ PDF script loaded successfully');
+  
+  // Check if jsPDF is available
+  if (!window.jspdf) {
+    console.error('❌ jsPDF library not found');
+    return;
+  }
+  console.log('✅ jsPDF library found');
   
   const btn = document.getElementById('downloadSummaryPdfBtn');
   if (!btn) {
-    console.log('Button not found');
+    console.error('❌ Button with ID "downloadSummaryPdfBtn" not found');
     return;
   }
-  
-  console.log('Button found, adding event listener');
+  console.log('✅ Download button found');
   
   btn.addEventListener('click', () => {
-    console.log('Download button clicked');
+    console.log('🚀 Download button clicked - starting PDF generation');
     
     try {
+      // Initialize jsPDF
       const { jsPDF } = window.jspdf;
-      if (!jsPDF) {
-        console.error('jsPDF not found');
-        return;
+      const doc = new jsPDF();
+      console.log('✅ jsPDF instance created');
+      
+      // Simple test - just create a basic PDF first
+      doc.setFontSize(20);
+      doc.text('BHAGWATI MOTORS', 20, 30);
+      doc.setFontSize(14);
+      doc.text('INDIA PRIVATE LIMITED', 20, 50);
+      
+      // Get current date
+      const now = new Date();
+      const dateStr = now.toLocaleDateString();
+      doc.setFontSize(12);
+      doc.text('Date: ' + dateStr, 20, 70);
+      
+      // Try to get data from elements (with fallbacks)
+      let totalCustomers = 'N/A';
+      let totalBalance = 'N/A';
+      let tableData = [];
+      
+      // Check for total customers
+      const custElement = document.getElementById('totalCustomers');
+      if (custElement) {
+        totalCustomers = custElement.textContent || custElement.innerText || 'N/A';
+        console.log('✅ Found total customers:', totalCustomers);
+      } else {
+        console.log('⚠️ totalCustomers element not found');
       }
       
-      console.log('Creating PDF...');
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      // Check for total balance
+      const balanceElement = document.getElementById('summaryGrandTotal');
+      if (balanceElement) {
+        totalBalance = (balanceElement.textContent || balanceElement.innerText || 'N/A').replace('₹', 'Rs. ');
+        console.log('✅ Found total balance:', totalBalance);
+      } else {
+        console.log('⚠️ summaryGrandTotal element not found');
+      }
       
-      // Grayscale-optimized colors (perfect for B&W printing)
-      const darkGray = [40, 40, 40];        // Almost black - main text
-      const mediumDark = [80, 80, 80];      // Dark gray - headers
-      const mediumGray = [120, 120, 120];   // Medium gray - accents
-      const lightGray = [220, 220, 220];    // Light gray - backgrounds
-      const veryLight = [245, 245, 245];    // Very light - subtle backgrounds
+      // Add summary info
+      doc.text('Total Customers: ' + totalCustomers, 20, 90);
+      doc.text('Total Balance: ' + totalBalance, 20, 110);
       
-      const margin = 60;
-      const pageW = doc.internal.pageSize.getWidth();
-      let y = margin;
-      
-      // Modern header with accent line
-      doc.setDrawColor(80, 80, 80);
-      doc.setLineWidth(3);
-      doc.line(margin, y, pageW - margin, y);
-      y += 25;
-      
-      // Company title - modern styling
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(22)
-         .setTextColor(40, 40, 40);
-      doc.text('BHAGWATI MOTORS', pageW/2, y, { align: 'center' });
-      
-      y += 20;
-      doc.setFontSize(14)
-         .setTextColor(80, 80, 80);
-      doc.text('INDIA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
-      
-      y += 35;
-      
-      // Decorative line
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(1);
-      doc.line(margin + 80, y, pageW - margin - 80, y);
-      y += 25;
-      
-      // Branch and Date in modern cards
-      const cardHeight = 45;
-      const cardWidth = (pageW - margin * 2 - 15) / 2;
-      
-      // Branch card
-      doc.setFillColor(245, 245, 245);
-      doc.rect(margin, y, cardWidth, cardHeight, 'F');
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(9)
-         .setTextColor(120, 120, 120);
-      doc.text('BRANCH', margin + 12, y + 18);
-      
-      const raw = window.currentBranch;
-      const branch = raw 
-        ? (typeof raw === 'string' 
-            ? raw 
-            : (raw.textContent || raw.innerText || 'Unknown Branch'))
-        : 'Unknown Branch';
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(12)
-         .setTextColor(40, 40, 40);
-      doc.text(branch, margin + 12, y + 33);
-      
-      // Date card
-      doc.setFillColor(245, 245, 245);
-      doc.rect(margin + cardWidth + 15, y, cardWidth, cardHeight, 'F');
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(9)
-         .setTextColor(120, 120, 120);
-      doc.text('REPORT DATE', margin + cardWidth + 27, y + 18);
-      
-      const now = new Date();
-      const dd = String(now.getDate()).padStart(2, '0');
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const yy = now.getFullYear();
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(12)
-         .setTextColor(40, 40, 40);
-      doc.text(`${dd}/${mm}/${yy}`, margin + cardWidth + 27, y + 33);
-      
-      y += cardHeight + 35;
-      
-      // Summary section with visual elements
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(14)
-         .setTextColor(40, 40, 40);
-      doc.text('SUMMARY OVERVIEW', margin, y);
-      
-      y += 25;
-      
-      // Summary stats box
-      const summaryHeight = 70;
-      doc.setFillColor(245, 245, 245);
-      doc.rect(margin, y, pageW - margin * 2, summaryHeight, 'F');
-      
-      // Customer count with icon
-      doc.setFillColor(80, 80, 80);
-      doc.circle(margin + 25, y + 35, 18, 'F');
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(12)
-         .setTextColor(255, 255, 255);
-      doc.text('C', margin + 25, y + 40, { align: 'center' });
-      
-      const totalCust = document.getElementById('totalCustomers').textContent;
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(20)
-         .setTextColor(40, 40, 40);
-      doc.text(totalCust, margin + 55, y + 32);
-      
-      doc.setFont('helvetica', 'normal')
-         .setFontSize(10)
-         .setTextColor(120, 120, 120);
-      doc.text('Total Customers', margin + 55, y + 45);
-      
-      // Balance with icon
-      const rightX = pageW/2 + 40;
-      doc.setFillColor(120, 120, 120);
-      doc.circle(rightX, y + 35, 18, 'F');
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(10)
-         .setTextColor(255, 255, 255);
-      doc.text('Rs', rightX, y + 40, { align: 'center' });
-      
-      const totalBalRaw = document.getElementById('summaryGrandTotal').textContent;
-      const totalBal = totalBalRaw.replace('₹', 'Rs. ');
-      
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(16)
-         .setTextColor(40, 40, 40);
-      doc.text(totalBal, rightX + 30, y + 32);
-      
-      doc.setFont('helvetica', 'normal')
-         .setFontSize(10)
-         .setTextColor(120, 120, 120);
-      doc.text('Total Outstanding', rightX + 30, y + 45);
-      
-      y += summaryHeight + 35;
-      
-      // Table section
-      doc.setFont('helvetica', 'bold')
-         .setFontSize(14)
-         .setTextColor(40, 40, 40);
-      doc.text('CUSTOMER DETAILS', margin, y);
-      
-      y += 20;
-      
-      // Prepare table data
-      const rows = Array.from(
-        document.getElementById('summaryTable').tBodies[0].rows
-      ).filter(r => r.cells.length >= 2);
-      
-      const body = rows.map((r, idx) => [
-        String(idx + 1).padStart(2, '0'),
-        r.cells[0].innerText.trim(),
-        r.cells[1].innerText.trim().replace('₹', 'Rs. ')
-      ]);
-      
-      console.log('Creating table with', body.length, 'rows');
-      
-      // Enhanced table
-      doc.autoTable({
-        startY: y + 10,
-        margin: { left: margin, right: margin },
-        head: [['S.No.', 'Customer Name', 'Total Due']],
-        body: body,
-        theme: 'grid',
+      // Try to get table data
+      const table = document.getElementById('summaryTable');
+      if (table && table.tBodies && table.tBodies[0]) {
+        const rows = Array.from(table.tBodies[0].rows);
+        console.log('✅ Found table with', rows.length, 'rows');
         
-        headStyles: {
-          fillColor: [80, 80, 80],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 11,
-          cellPadding: 10
-        },
+        tableData = rows
+          .filter(row => row.cells.length >= 2)
+          .map((row, index) => [
+            String(index + 1),
+            (row.cells[0].textContent || row.cells[0].innerText || '').trim(),
+            (row.cells[1].textContent || row.cells[1].innerText || '').trim().replace('₹', 'Rs. ')
+          ]);
         
-        bodyStyles: {
-          textColor: [40, 40, 40],
-          font: 'helvetica',
-          fontSize: 10,
-          cellPadding: 8
-        },
+        console.log('✅ Processed', tableData.length, 'table rows');
+      } else {
+        console.log('⚠️ summaryTable not found or empty');
+        tableData = [['1', 'No data available', 'Rs. 0']];
+      }
+      
+      // Create table using autoTable
+      if (typeof doc.autoTable === 'function') {
+        console.log('✅ autoTable plugin available');
         
-        alternateRowStyles: {
-          fillColor: [245, 245, 245]
-        },
-        
-        columnStyles: {
-          0: { cellWidth: 60, halign: 'center' },
-          1: { cellWidth: 300, halign: 'left' },
-          2: { cellWidth: 120, halign: 'right' }
-        },
-        
-        styles: {
-          lineWidth: 0.5,
-          lineColor: [220, 220, 220],
-          overflow: 'linebreak'
-        },
-        
-        pageBreak: 'auto',
-        showHead: 'everyPage'
-      });
+        doc.autoTable({
+          startY: 130,
+          head: [['S.No.', 'Customer Name', 'Total Due']],
+          body: tableData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [80, 80, 80],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            textColor: [40, 40, 40]
+          },
+          alternateRowStyles: {
+            fillColor: [245, 245, 245]
+          }
+        });
+        console.log('✅ Table created successfully');
+      } else {
+        console.log('⚠️ autoTable plugin not available, adding simple text');
+        let y = 130;
+        doc.text('Customer Details:', 20, y);
+        y += 20;
+        tableData.slice(0, 10).forEach((row, index) => {
+          doc.text(`${row[0]}. ${row[1]} - ${row[2]}`, 20, y + (index * 10));
+        });
+      }
       
-      console.log('Table created successfully');
+      // Save the PDF
+      const filename = `BhagwatiMotors_Summary_${Date.now()}.pdf`;
+      console.log('💾 Saving PDF as:', filename);
       
-      // Modern footer
-      const footerY = doc.internal.pageSize.getHeight() - 40;
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(1);
-      doc.line(margin, footerY, pageW - margin, footerY);
-      
-      doc.setFont('helvetica', 'normal')
-         .setFontSize(8)
-         .setTextColor(120, 120, 120);
-      
-      const timestamp = new Date().toLocaleString();
-      doc.text(`Generated: ${timestamp}`, margin, footerY + 15);
-      doc.text('Confidential Report', pageW - margin, footerY + 15, { align: 'right' });
-      
-      // Save with professional filename
-      const safeBranch = branch.replace(/\s+/g, '_');
-      const dateStr = `${yy}${mm}${dd}`;
-      const filename = `BhagwatiMotors_${safeBranch}_Summary_${dateStr}.pdf`;
-      
-      console.log('Saving PDF:', filename);
       doc.save(filename);
-      console.log('PDF saved successfully');
+      console.log('🎉 PDF saved successfully!');
+      
+      // Show success message
+      alert('PDF downloaded successfully!');
       
     } catch (error) {
-      console.error('Error creating PDF:', error);
+      console.error('❌ Error creating PDF:', error);
+      console.error('Error details:', error.message);
+      console.error('Stack trace:', error.stack);
       alert('Error creating PDF: ' + error.message);
     }
   });
+  
+  console.log('✅ Event listener attached successfully');
 });
-</style>
+
+// Additional debug info
+console.log('📊 Available libraries check:');
+console.log('- window.jspdf exists:', !!window.jspdf);
+console.log('- document ready state:', document.readyState);</style>
 
 </body>
 </html>
