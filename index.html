@@ -1572,75 +1572,82 @@ document.addEventListener('DOMContentLoaded', () => {
   btn.addEventListener('click', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation:'portrait', unit:'pt', format:'a4' });
-
-    const margin = 72;                       // 1" margins
+    const margin = 72;
     const pageW  = doc.internal.pageSize.getWidth();
-    let   y      = margin;
+    let y        = margin;
 
-    // — Title —
+    // Title
     doc.setFont('helvetica','bold').setFontSize(18)
        .text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageW/2, y, { align:'center' });
 
-    // — Branch & Date —
+    // Branch & Date
     y += 25;
     doc.setFont('helvetica','normal').setFontSize(12);
-    const branchRaw = window.currentBranch || 'Unknown Branch';
-    const branch    = String(branchRaw);     // ensure string
+    // window.currentBranch might be an element—grab its text
+    const raw = window.currentBranch;
+    const branch = raw 
+      ? (typeof raw === 'string' 
+          ? raw 
+          : (raw.textContent || raw.innerText || 'Unknown Branch'))
+      : 'Unknown Branch';
     doc.text(`Branch: ${branch}`, margin, y);
-
-    const d  = new Date(),
-          dd = String(d.getDate()).padStart(2,'0'),
-          mm = String(d.getMonth()+1).padStart(2,'0'),
-          yy = d.getFullYear();
+    const now = new Date(),
+          dd  = String(now.getDate()).padStart(2,'0'),
+          mm  = String(now.getMonth()+1).padStart(2,'0'),
+          yy  = now.getFullYear();
     doc.text(`As on: ${dd}/${mm}/${yy}`, pageW - margin, y, { align:'right' });
 
-    // — Totals —
+    // Totals
     y += 20;
     const totalCust = document.getElementById('totalCustomers').textContent;
-    const totalBal  = document.getElementById('summaryGrandTotal').textContent.replace('₹','Rs. ');
+    const totalBalRaw = document.getElementById('summaryGrandTotal').textContent;
+    const totalBal = totalBalRaw.replace('₹','Rs. ');
     doc.setFont('helvetica','bold').setTextColor('#000')
        .text(`Total Customers: ${totalCust}`, margin, y);
     doc.text(`Total Balance: ${totalBal}`, pageW - margin, y, { align:'right' });
 
-    // — Table Data —
+    // Table data
     const rows = Array.from(
       document.getElementById('summaryTable').tBodies[0].rows
     ).filter(r => r.cells.length >= 2);
-    const body = rows.map(r => [
+    const body = rows.map((r, idx) => [
+      idx + 1,
       r.cells[0].innerText.trim(),
       r.cells[1].innerText.trim().replace('₹','Rs. ')
     ]);
 
-    // — Compute column widths (60/40 split) —
+    // Column widths: S.No = 10%, Name = 60%, Due = 30%
     const availW = pageW - margin*2;
-    const colW   = [availW * 0.6, availW * 0.4];
+    const colWidths = [availW*0.1, availW*0.6, availW*0.3];
 
-    // — Draw with AutoTable —
+    // Draw table via AutoTable
     doc.autoTable({
       startY: y + 30,
       margin: { left: margin, right: margin },
-      head: [['Customer Name','Total Due']],
+      head: [['S.No.','Customer Name','Total Due']],
       body: body,
       theme: 'grid',
       headStyles: { fillColor:[230,230,230], textColor:0, fontStyle:'bold' },
       bodyStyles:{ textColor:0, font:'helvetica', fontSize:10 },
       alternateRowStyles:{ fillColor:[245,245,245] },
       columnStyles: {
-        0: { cellWidth: colW[0], halign:'left' },
-        1: { cellWidth: colW[1], halign:'right' }
+        0: { cellWidth:colWidths[0], halign:'center' },
+        1: { cellWidth:colWidths[1], halign:'left'   },
+        2: { cellWidth:colWidths[2], halign:'right'  }
       },
       styles:{ cellPadding:6, overflow:'linebreak' },
       pageBreak:'auto',
       showHead:'everyPage'
     });
 
-    // — Save PDF (use branch safely cast to string) —
+    // Save PDF
     const safeBranch = branch.replace(/\s+/g,'_');
     const filename   = `${safeBranch}_Summary_${Date.now()}.pdf`;
     doc.save(filename);
   });
 });
 </script>
+
 
 
 
