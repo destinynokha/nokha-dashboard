@@ -1391,41 +1391,58 @@ function sortTable(tableId, colIndex) {
             }
         });
     </script>
-    <script>
-// Generic HTML table sorter with toggle
+<script>
+/**
+ * Sort any table by column.
+ * @param {string} tableId  id of the <table> to sort
+ * @param {number} colIndex zero-based index of the <td> to sort by
+ */
 function sortTable(tableId, colIndex) {
   const table = document.getElementById(tableId);
   if (!table) return;
 
-  // 1) Read the last direction (default to asc)
-  let dir = table.dataset.sortDir === 'desc' ? 'desc' : 'asc';
+  // 1) Determine sort direction (toggle)
+  let dir = table.dataset.sortDir === "desc" ? "desc" : "asc";
 
-  // 2) Pull all the rows into an array
+  // 2) Pull rows into an array
   const tbody = table.tBodies[0];
   const rows  = Array.from(tbody.rows);
 
-  // 3) Sort that array
-  rows.sort((a, b) => {
-    let x = a.cells[colIndex].innerText.trim();
-    let y = b.cells[colIndex].innerText.trim();
+  // 3) Sort with a comparator that handles dates, numbers, strings
+  rows.sort((rowA, rowB) => {
+    let a = rowA.cells[colIndex].innerText.trim();
+    let b = rowB.cells[colIndex].innerText.trim();
 
-    // Numeric compare if both parse
-    const xn = parseFloat(x.replace(/[^0-9.\-]+/g,""));
-    const yn = parseFloat(y.replace(/[^0-9.\-]+/g,""));
-    if (!isNaN(xn) && !isNaN(yn)) { x = xn; y = yn; }
+    // a) Date detection: dd/MM/yyyy
+    const dateRe = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const ma = dateRe.exec(a), mb = dateRe.exec(b);
+    if (ma && mb) {
+      a = new Date(ma[3], ma[2]-1, ma[1]).getTime();
+      b = new Date(mb[3], mb[2]-1, mb[1]).getTime();
+    } else {
+      // b) Numeric detection (strip non-digits)
+      const na = parseFloat(a.replace(/[^0-9.\-]+/g,""));
+      const nb = parseFloat(b.replace(/[^0-9.\-]+/g,""));
+      if (!isNaN(na) && !isNaN(nb)) {
+        a = na;
+        b = nb;
+      }
+      // else leave as strings
+    }
 
-    if (x < y) return dir === 'asc' ? -1 : 1;
-    if (x > y) return dir === 'asc' ?  1 : -1;
+    if (a < b) return dir === "asc"  ? -1 : 1;
+    if (a > b) return dir === "asc"  ?  1 : -1;
     return 0;
   });
 
-  // 4) Re-append the rows in the new order
-  rows.forEach(row => tbody.appendChild(row));
+  // 4) Re-append in sorted order
+  rows.forEach(r => tbody.appendChild(r));
 
-  // 5) Toggle and store the next direction
-  table.dataset.sortDir = dir === 'asc' ? 'desc' : 'asc';
+  // 5) Toggle for next time
+  table.dataset.sortDir = dir === "asc" ? "desc" : "asc";
 }
 </script>
+
 
 
 
