@@ -601,7 +601,8 @@
                         <button class="btn btn-success" onclick="copySelectedToFindings()">📤 Copy Selected to Findings</button>
                     </div>
                 </div>
-
+function sortTable(tableId, colIndex) {
+  console.log("sortTable()", tableId, colIndex);
                 <div class="table-container">
                     <table id="dashboardTable">
                         <thead>
@@ -624,6 +625,7 @@
                         </tbody>
                     </table>
                 </div>
+                }
             </div>
 
             <div id="summaryPage" class="page">
