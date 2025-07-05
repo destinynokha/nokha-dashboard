@@ -1454,89 +1454,98 @@ function sortTable(tableId, colIndex) {
 <script>
 document.getElementById('downloadPdfBtn').addEventListener('click', () => {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'pt',
+    format: 'a4'
+  });
 
+  // 1" margins = 72pt
+  const margin = 72;
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin    = 40;
-  let cursorY     = 40;
+  let cursorY = margin;
 
-  // Title
-  doc.setFont('helvetica', 'bold').setFontSize(18);
-  doc.text('BHAGWATI MOTORS INDIA PRIVATE LIMITED', pageWidth/2, cursorY, { align: 'center' });
+  // — Title —
+  doc.setFont('helvetica','bold').setFontSize(18);
+  doc.text(
+    'BHAGWATI MOTORS INDIA PRIVATE LIMITED',
+    pageWidth/2, cursorY,
+    { align:'center' }
+  );
 
-  // Customer & Period
+  // — Customer & Period —
   cursorY += 30;
-  doc.setFont('helvetica', 'normal').setFontSize(12);
+  doc.setFont('helvetica','normal').setFontSize(12);
   let from = document.getElementById('fromDate').value.trim() || '01/04/2025';
   let to   = document.getElementById('toDate').value.trim();
   if (!to) {
-    const d=new Date(), dd=String(d.getDate()).padStart(2,'0'),
-          mm=String(d.getMonth()+1).padStart(2,'0'), yy=d.getFullYear();
+    const d = new Date(), dd = String(d.getDate()).padStart(2,'0'),
+          mm = String(d.getMonth()+1).padStart(2,'0'),
+          yy = d.getFullYear();
     to = `${dd}/${mm}/${yy}`;
   }
   const cust = document.getElementById('customerSelect').value || 'All Customers';
   doc.text(`Customer: ${cust}`, margin, cursorY);
-  doc.text(`Period: ${from} – ${to}`, pageWidth - margin, cursorY, { align: 'right' });
+  doc.text(`Period: ${from} – ${to}`, pageWidth - margin, cursorY, { align:'right' });
 
-  // Overdue & Total (swap ₹ → Rs.)
+  // — Totals —
   cursorY += 20;
-  const rawOver = document.getElementById('overdueTotal').textContent.replace('₹','Rs. ');
-  const rawTot  = document.getElementById('grandTotal').textContent  .replace('₹','Rs. ');
+  const overdueRaw = document.getElementById('overdueTotal').textContent.replace('₹','Rs. ');
+  const totalRaw   = document.getElementById('grandTotal').textContent  .replace('₹','Rs. ');
   doc.setFont('helvetica','bold').setTextColor('#c0392b')
-     .text(`Overdue: ${rawOver}`, margin, cursorY);
+     .text(`Overdue: ${overdueRaw}`, margin, cursorY);
   doc.setTextColor('#27ae60')
-     .text(`Total: ${rawTot}`, pageWidth - margin, cursorY, { align: 'right' });
+     .text(`Total: ${totalRaw}`, pageWidth - margin, cursorY, { align:'right' });
 
-  // Build the table data
+  // — Table Data —
   const origRows = Array.from(
     document.getElementById('dashboardTable').tBodies[0].rows
   ).filter(r => r.cells.length >= 8);
-
   const body = origRows.map((r,i) => {
-    // grab and clean
-    const date = r.cells[5].innerText.trim();
-    const type = r.cells[3].innerText.trim();
-    const docNo= r.cells[4].innerText.trim();
-    let bal    = r.cells[7].innerText.trim().replace('₹','Rs. ');
-    return [ i+1, date, type, docNo, bal ];
+    return [
+      i+1,
+      r.cells[5].innerText.trim(),  // Date
+      r.cells[3].innerText.trim(),  // Document Type (col 4)
+      r.cells[4].innerText.trim(),  // Document No.   (col 5)
+      r.cells[7].innerText.trim().replace('₹','Rs. ') // Amount Due (col 8)
+    ];
   });
 
-  // AutoTable
+  // — AutoTable —
   doc.autoTable({
     startY: cursorY + 30,
+    margin: { left: margin, right: margin },
     head: [['S.No','Date','Document Type','Document No.','Amount Due']],
     body: body,
     theme: 'grid',
     headStyles: {
-      fillColor: [44,62,80],
-      textColor: 255,
+      fillColor: [230,230,230], // light grey
+      textColor: 0,             // black
       fontStyle: 'bold'
     },
     bodyStyles: {
-      textColor: 0,
+      textColor: 0,             // black
       font: 'helvetica',
       fontSize: 10
     },
     alternateRowStyles: { fillColor: [245,245,245] },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 40 },
-      1: { halign: 'left',   cellWidth: 80 },
-      2: { halign: 'left',   cellWidth:100 },
-      3: { halign: 'left',   cellWidth: 80 },
-      4: { halign: 'right',  cellWidth: 80 }
+      0: { halign:'center', cellWidth:40 },    // S.No
+      1: { halign:'left',   cellWidth:80 },    // Date
+      2: { halign:'left',   cellWidth:100 },   // Document Type
+      3: { halign:'left',   cellWidth:80 },    // Document No.
+      4: { halign:'right',  cellWidth:120 }    // Amount Due (1.5× previous 80pt)
     },
-    margin: { left: margin, right: margin },
-    styles: { cellPadding: 6, overflow: 'linebreak' },
+    styles: { cellPadding:6, overflow:'linebreak' },
     pageBreak: 'auto',
     showHead: 'everyPage'
   });
 
-  // Save, using customer name in file
-  const filename = `${cust.replace(/\\s+/g,'_')}_Report_${Date.now()}.pdf`;
+  // — Save PDF with customer name —
+  const filename = `${cust.replace(/\s+/g,'_')}_Report_${Date.now()}.pdf`;
   doc.save(filename);
 });
 </script>
-
 
 
 
