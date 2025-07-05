@@ -1392,34 +1392,47 @@ function sortTable(tableId, colIndex) {
         });
     </script>
     <script>
-// Generic HTML table sorter: call sortTable(tableId, colIndex)
 function sortTable(tableId, colIndex) {
+  console.log("sortTable()", tableId, colIndex);
   const table = document.getElementById(tableId);
-  let switching = true, dir = "asc";
+  if (!table) return;
+  
+  let switching = true;
+  let dir = "asc";
+  
   while (switching) {
     switching = false;
     const rows = table.rows;
+    // declare shouldSwitch here so it’s visible below
+    let shouldSwitch = false;
+
     for (let i = 1; i < rows.length - 1; i++) {
-      let shouldSwitch = false;
-      const xcell = rows[i].getElementsByTagName("TD")[colIndex];
-      const ycell = rows[i+1].getElementsByTagName("TD")[colIndex];
+      const xcell = rows[i].cells[colIndex];
+      const ycell = rows[i + 1].cells[colIndex];
       let x = xcell.innerText.trim(), y = ycell.innerText.trim();
-      const xn = parseFloat(x.replace(/[^0-9.-]+/g,""));
-      const yn = parseFloat(y.replace(/[^0-9.-]+/g,""));
+
+      const xn = parseFloat(x.replace(/[^0-9.\-]+/g, ""));
+      const yn = parseFloat(y.replace(/[^0-9.\-]+/g, ""));
       if (!isNaN(xn) && !isNaN(yn)) { x = xn; y = yn; }
-      if ((dir==="asc"  && x>y) || (dir==="desc" && x<y)) {
-        shouldSwitch = true; break;
+
+      if ((dir === "asc"  && x > y) ||
+          (dir === "desc" && x < y)) {
+        shouldSwitch = true;
+        break;
       }
     }
+
     if (shouldSwitch) {
-      rows[i].parentNode.insertBefore(rows[i+1], rows[i]);
+      rows[1].parentNode.insertBefore(rows[2], rows[1]); // Will be adjusted in next loop
       switching = true;
-    } else if (dir==="asc") {
-      dir = "desc"; switching = true;
+    } else if (dir === "asc") {
+      dir = "desc";
+      switching = true;
     }
   }
 }
 </script>
+
 
 
 </body>
