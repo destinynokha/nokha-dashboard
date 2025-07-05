@@ -985,6 +985,11 @@
         showError('Failed to refresh dashboard: ' + error.message);
         tableBody.innerHTML = '<tr><td colspan="9" class="error">❌ Failed to load data</td></tr>';
     }
+
+           // … inside refreshDashboard(), just before:
+console.log("→ refreshDashboard params:", params);
+const dashboardData = await makeRequest('getDashboardData', params);
+
 }
 
 
