@@ -1446,6 +1446,77 @@ function sortTable(tableId, colIndex) {
   table.dataset.sortDir = dir === "asc" ? "desc" : "asc";
 }
 </script>
+<script>
+document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+  // 1) Build a temporary container for the PDF
+  const container = document.createElement('div');
+  container.style.padding = '20px';
+  container.style.fontFamily = 'Arial, sans-serif';
+  container.style.color = '#333';
+
+  // 2) Firm name header
+  const firmName = 'BHAGWATI MOTORS INDIA PRIVATE LIMITED';  // or pull from a variable
+  const h1 = document.createElement('h1');
+  h1.innerText = firmName;
+  h1.style.textAlign = 'center';
+  container.appendChild(h1);
+
+  // 3) Selected customer & period
+  const customerSelect = document.getElementById('customerSelect').value || 'All Customers';
+  const fromDate = document.getElementById('fromDate').value || '–';
+  const toDate   = document.getElementById('toDate').value   || '–';
+
+  const info = document.createElement('p');
+  info.innerHTML = `
+    <strong>Customer:</strong> ${customerSelect}<br>
+    <strong>Period:</strong> ${fromDate} – ${toDate}
+  `;
+  info.style.marginBottom = '8px';
+  container.appendChild(info);
+
+  // 4) Totals
+  const overdue = document.getElementById('overdueTotal').textContent;
+  const total   = document.getElementById('grandTotal').textContent;
+  const stats   = document.createElement('p');
+  stats.innerHTML = `
+    <strong>Overdue Amount:</strong> ${overdue}<br>
+    <strong>Total Amount:</strong> ${total}
+  `;
+  stats.style.marginBottom = '16px';
+  container.appendChild(stats);
+
+  // 5) Clone and strip your table
+  const origTable = document.getElementById('dashboardTable');
+  const tblClone  = origTable.cloneNode(true);
+  // Remove unwanted columns: 0=Select,1=Code,2=Name,6=Due Date,8=Staff Remarks
+  const removeCols = [8,6,2,1,0]; 
+  Array.from(tblClone.rows).forEach(row => {
+    removeCols.forEach(ci => {
+      if (row.cells[ci]) row.deleteCell(ci);
+    });
+  });
+  // Optional: adjust table styling
+  tblClone.style.width = '100%';
+  tblClone.style.borderCollapse = 'collapse';
+  tblClone.querySelectorAll('th,td').forEach(cell => {
+    cell.style.border = '1px solid #ccc';
+    cell.style.padding = '4px 8px';
+  });
+  container.appendChild(tblClone);
+
+  // 6) Kick off html2pdf
+  html2pdf()
+    .set({
+      margin:       0.5,
+      filename:     `${firmName.replace(/\s+/g,'_')}_Report_${Date.now()}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    })
+    .from(container)
+    .save();
+});
+</script>
 
 
 
