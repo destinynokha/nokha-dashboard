@@ -1458,148 +1458,135 @@ function sortTable(tableId, colIndex) {
 }
 </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Summary PDF download handler
-  const summaryBtn = document.getElementById('downloadSummaryPdfBtn');
-  if (summaryBtn) {
-    summaryBtn.addEventListener('click', () => {
-      try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-        const margin = 40;
-        const pageW = doc.internal.pageSize.getWidth();
-        let y = margin;
+here is the script
 
-        // Title
-        doc.setFont('helvetica', 'bold')
-           .setFontSize(18)
-           .setTextColor(40, 40, 40);
-        doc.text('BHAGWATI MOTORS NOKHA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
-        y += 25;
+<script>document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('downloadSummaryPdfBtn');
+  if (!btn) return;
+  
+  btn.addEventListener('click', () => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      
+      const margin = 40;
+      const pageW = doc.internal.pageSize.getWidth();
+      let y = margin;
+      
+      // Company name - single line
+      doc.setFont('helvetica', 'bold')
+         .setFontSize(18)
+         .setTextColor(40, 40, 40);
+      doc.text('BHAGWATI MOTORS NOKHA PRIVATE LIMITED', pageW/2, y, { align: 'center' });
+      y += 25;
+      
+      // Branch - centered below company name
+      const raw = window.currentBranch;
+      const branch = raw 
+        ? (typeof raw === 'string' 
+            ? raw 
+            : (raw.textContent || raw.innerText || 'Unknown Branch'))
+        : 'Unknown Branch';
+      
+      doc.setFont('helvetica', 'normal')
+         .setFontSize(12)
+         .setTextColor(80, 80, 80);
+      doc.text(`Branch: ${branch}`, pageW/2, y, { align: 'center' });
+      y += 30;
+      
+      // Single line with Date, Customers, and Outstanding
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yy = now.getFullYear();
+      
+      const totalCust = document.getElementById('totalCustomers').textContent;
+      const totalBalRaw = document.getElementById('summaryGrandTotal').textContent;
+      const totalBal = totalBalRaw.replace('₹', 'Rs. ');
+      
+      doc.setFont('helvetica', 'normal')
+         .setFontSize(10)
+         .setTextColor(40, 40, 40);
+      
+      // Left: Date in dd/mm/yyyy format
+      doc.text(`Date: ${dd}/${mm}/${yy}`, margin, y);
+      
+      // Center: Customers
+      doc.text(`Customers: ${totalCust}`, pageW/2, y, { align: 'center' });
+      
+      // Right: Outstanding
+      doc.text(`Outstanding: ${totalBal}`, pageW - margin, y, { align: 'right' });
+      
+      y += 25;
+      
+      // Table data
+      const rows = Array.from(
+        document.getElementById('summaryTable').tBodies[0].rows
+      ).filter(r => r.cells.length >= 2);
+      
+      const body = rows.map((r, idx) => [
+        String(idx + 1),
+        r.cells[0].innerText.trim(),
+        r.cells[1].innerText.trim().replace('₹', 'Rs. ')
+      ]);
+      
+      // Compact table
+      doc.autoTable({
+        startY: y,
+        margin: { left: margin, right: margin },
+        head: [['S.No.', 'Customer Name', 'Total Due']],
+        body: body,
+        theme: 'grid',
+        
+        headStyles: {
+          fillColor: [240, 240, 240],  // Very light gray
+          textColor: [40, 40, 40],     // Black text
+          fontStyle: 'bold',
+          fontSize: 10,
+          cellPadding: 6
+        },
+        
+        bodyStyles: {
+          textColor: [40, 40, 40],
+          font: 'helvetica',
+          fontSize: 9,
+          cellPadding: 4
+        },
+        
+        alternateRowStyles: {
+          fillColor: [250, 250, 250]  // Very subtle alternating rows
+        },
+        
+        columnStyles: {
+          0: { cellWidth: 50, halign: 'center' },
+          1: { cellWidth: 300, halign: 'left' },
+          2: { cellWidth: 100, halign: 'right' }
+        },
+        
+        styles: {
+          lineWidth: 0.3,
+          lineColor: [200, 200, 200],
+          overflow: 'linebreak'
+        },
+        
+        pageBreak: 'auto',
+        showHead: 'everyPage'
+      });
+      
+      // Save PDF
+      const safeBranch = branch.replace(/\s+/g, '_');
+      const dateStr = `${yy}${mm}${dd}`;
+      const filename = `BhagwatiMotors_${safeBranch}_${dateStr}.pdf`;
+      
+      doc.save(filename);
+      alert('PDF downloaded successfully! Check your Downloads folder.');
+    } catch (error) {
+      console.error('Error creating PDF:', error);
+      alert('Error creating PDF: ' + error.message);
+    }
+  });
+});</script>
 
-        // Branch line
-        const rawBranch = window.currentBranch;
-        const branch = rawBranch
-          ? (typeof rawBranch === 'string' ? rawBranch : (rawBranch.textContent || rawBranch.innerText))
-          : 'Unknown Branch';
-        doc.setFont('helvetica', 'normal')
-           .setFontSize(12)
-           .setTextColor(80, 80, 80);
-        doc.text(`Branch: ${branch}`, pageW/2, y, { align: 'center' });
-        y += 30;
-
-        // Date / Customers / Outstanding
-        const now = new Date();
-        const dd = String(now.getDate()).padStart(2,'0');
-        const mm = String(now.getMonth()+1).padStart(2,'0');
-        const yy = now.getFullYear();
-        const totalCust = document.getElementById('totalCustomers').textContent;
-        const totalBalRaw = document.getElementById('summaryGrandTotal').textContent;
-        const totalBal = totalBalRaw.replace('₹','Rs. ');
-        doc.setFont('helvetica','normal')
-           .setFontSize(10)
-           .setTextColor(40,40,40);
-        doc.text(`Date: ${dd}/${mm}/${yy}`, margin, y);
-        doc.text(`Customers: ${totalCust}`, pageW/2, y, { align: 'center' });
-        doc.text(`Outstanding: ${totalBal}`, pageW - margin, y, { align: 'right' });
-        y += 25;
-
-        // Build table body
-        const rows = Array.from(
-          document.getElementById('summaryTable').tBodies[0].rows
-        ).filter(r => r.cells.length >= 2);
-        const body = rows.map((r, i) => [
-          String(i+1),
-          r.cells[0].innerText.trim(),
-          r.cells[1].innerText.trim().replace('₹','Rs. ')
-        ]);
-
-        // Draw table
-        doc.autoTable({
-          startY: y,
-          margin: { left: margin, right: margin },
-          head: [['S.No.', 'Customer Name', 'Total Due']],
-          body: body,
-          theme: 'grid',
-          headStyles: {
-            fillColor: [240,240,240],
-            textColor: [40,40,40],
-            fontStyle: 'bold',
-            fontSize: 10,
-            cellPadding: 6
-          },
-          bodyStyles: {
-            textColor: [40,40,40],
-            font: 'helvetica',
-            fontSize: 9,
-            cellPadding: 4
-          },
-          alternateRowStyles: {
-            fillColor: [250,250,250]
-          },
-          columnStyles: {
-            0: { cellWidth: 50, halign: 'center' },
-            1: { cellWidth: 300, halign: 'left' },
-            2: { cellWidth: 100, halign: 'right' }
-          },
-          styles: {
-            lineWidth: 0.3,
-            lineColor: [200,200,200],
-            overflow: 'linebreak'
-          },
-          pageBreak: 'auto',
-          showHead: 'everyPage'
-        });
-
-        // Export via Android bridge
-        const dataUri = doc.output('datauristring');
-        const safeBranch = branch.replace(/\s+/g,'_');
-        const filename = `BhagwatiMotors_${safeBranch}_${yy}${mm}${dd}.pdf`;
-
-        if (window.Android && Android.saveFile) {
-          Android.saveFile(dataUri, filename);
-        } else {
-          doc.save(filename);
-        }
-      } catch (error) {
-        console.error('Error creating PDF:', error);
-        alert('Error creating PDF: ' + error.message);
-      }
-    });
-  }
-
-  // Report PDF download handler (same pattern)
-  const reportBtn = document.getElementById('downloadPdfBtn');
-  if (reportBtn) {
-    reportBtn.addEventListener('click', () => {
-      try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-        // … your existing Report PDF content generation …
-        // e.g. header, date/customer filters, autoTable …
-
-        // Once built, output and send to Android
-        const dataUri = doc.output('datauristring');
-        const date = new Date();
-        const dd = String(date.getDate()).padStart(2,'0');
-        const mm = String(date.getMonth()+1).padStart(2,'0');
-        const yy = date.getFullYear();
-        const filename = `DebtorsReport_${dd}${mm}${yy}.pdf`;
-
-        if (window.Android && Android.saveFile) {
-          Android.saveFile(dataUri, filename);
-        } else {
-          doc.save(filename);
-        }
-      } catch (error) {
-        console.error('Error creating report PDF:', error);
-        alert('Error creating PDF: ' + error.message);
-      }
-    });
-  }
-});
-</script>
 
   
     <script>
