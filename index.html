@@ -1577,7 +1577,7 @@ function sortTable(tableId, colIndex) {
       const filename = `BhagwatiMotors_${safeBranch}_${dateStr}.pdf`;
       
       doc.save(filename);
-      
+      alert('PDF downloaded successfully! Check your Downloads folder.');
     } catch (error) {
       console.error('Error creating PDF:', error);
       alert('Error creating PDF: ' + error.message);
@@ -1746,7 +1746,9 @@ function sortTable(tableId, colIndex) {
       const filename = `${safeCustomer}_${timestamp}.pdf`;
       
       doc.save(filename);
-      console.log('Dashboard PDF created successfully');
+      alert('PDF downloaded successfully! Check your Downloads folder.');
+        console.log('Dashboard PDF created successfully');
+    
       
     } catch (error) {
       console.error('Error creating dashboard PDF:', error);
